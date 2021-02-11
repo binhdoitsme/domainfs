@@ -14,7 +14,7 @@ import domainapp.softwareimpl.SoftwareImpl;
 public class AbstractInheritedCrudService<T, ID extends Serializable> extends AbstractCrudService<T, ID>
         implements InheritedCrudService<T, ID> {
 
-    private final Map<String, String> subtypes;
+    protected final Map<String, String> subtypes;
 
     // autowired constructor
     public AbstractInheritedCrudService(final SoftwareImpl sw, final Map<String, String> subtypes) {
