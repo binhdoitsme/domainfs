@@ -16,22 +16,47 @@ import domainapp.basics.model.meta.DAssoc.AssocType;
  */
 public final class ClassAssocUtils {
 
+    private static final Map<String, List<Class<?>>> nested;
     private static final Map<String, List<Class<?>>> associations;
     private static final Class<DAssoc> dAssocType = DAssoc.class;
 
     static {
+        nested = new HashMap<>();
         associations = new HashMap<>();
     }
 
     /**
-     * Get list of classes associated to {@link#cls}.
+     * Get list of classes nested within {@link#cls}.
      * @param cls
      * @return
      */
-    public static List<Class<?>> getAssociations(Class<?> cls) {
+    public static List<Class<?>> getNested(Class<?> cls) {
+        String className = cls.getName();
+        if (!nested.containsKey(className)) {
+            // get nested
+            findNested(cls);
+        }
+        return nested.get(className);  
+    }
+
+    /**
+     * Check if {@link#cls} has any nested classes.
+     * @param cls
+     * @return
+     */
+    public static boolean hasNested(Class<?> cls) {
+        return !getNested(cls).isEmpty();
+    }
+
+    /**
+     * Get list of classes associated within {@link#cls}.
+     * @param cls
+     * @return
+     */
+    public static List<Class<?>> getAssociated(Class<?> cls) {
         String className = cls.getName();
         if (!associations.containsKey(className)) {
-            // get associations
+            // get nested
             findAssociations(cls);
         }
         return associations.get(className);  
@@ -42,8 +67,8 @@ public final class ClassAssocUtils {
      * @param cls
      * @return
      */
-    public static boolean hasAssociations(Class<?> cls) {
-        return !getAssociations(cls).isEmpty();
+    public static boolean hasAssociated(Class<?> cls) {
+        return !getAssociated(cls).isEmpty();
     }
 
     private static void findAssociations(Class<?> cls) {
@@ -51,14 +76,26 @@ public final class ClassAssocUtils {
         Field[] declaredFields = cls.getDeclaredFields();
         for (Field field : declaredFields) {
             if (field.isAnnotationPresent(dAssocType)) {
+                DAssoc assoc = field.getAnnotation(dAssocType);                
+                associatedTypes.add(assoc.associate().type());
+            }
+        }
+        associations.put(cls.getName(), associatedTypes);
+    }
+
+    private static void findNested(Class<?> cls) {
+        List<Class<?>> nestedTypes = new LinkedList<>();
+        Field[] declaredFields = cls.getDeclaredFields();
+        for (Field field : declaredFields) {
+            if (field.isAnnotationPresent(dAssocType)) {
                 DAssoc assoc = field.getAnnotation(dAssocType);
                 
                 if (assoc.ascType() == AssocType.One2Many
                         && assoc.endType() == AssocEndType.One) {
-                    associatedTypes.add(assoc.associate().type());
+                    nestedTypes.add(assoc.associate().type());
                 }
             }
         }
-        associations.put(cls.getName(), associatedTypes);
+        nested.put(cls.getName(), nestedTypes);
     }
 }

@@ -21,4 +21,14 @@ public @interface ServiceController {
      * Web API endpoint of the service.
      */
     String endpoint();
+
+    /**
+     * The fully-qualified name of the corresponding resource class.
+     */
+    String className();
+
+    /**
+     * Nested ServiceController names.
+     */
+    String[] nested() default {};
 }

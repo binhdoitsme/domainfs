@@ -6,6 +6,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import com.hanu.domainfs.ws.utils.ClassAssocUtils;
+import com.hanu.domainfs.ws.utils.ClassUtils;
 
 /**
  * The utility class looking into Web service classes and returning their
@@ -14,18 +19,45 @@ import java.util.Map;
  */
 final class ServiceDescriptor {
     private final Map<String, ServiceDescription> descriptions;
+    private final Map<String, String> mappedServices;
 
     ServiceDescriptor() {
         descriptions = new HashMap<>();
+        mappedServices = new HashMap<>();
     }
 
     /**
      * Describe a web service class.
      */
     public ServiceDescription describe(Class<?> serviceClass) {
+        return describeNested(serviceClass, true);
+    }
+
+    private ServiceDescription describeNested(Class<?> serviceClass, boolean moreNesting) {
         ServiceController annotation = 
             serviceClass.getAnnotation(ServiceController.class);
-        return ServiceDescription.from(annotation);
+        if (annotation == null) return null;
+        mappedServices.putIfAbsent(annotation.className(), serviceClass.getName());
+        if (!moreNesting) return ServiceDescription.from(annotation);
+        Class<?> cls;
+        try {
+            cls = Class.forName(annotation.className());
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+        List<Class<?>> nestedEntityTypes = ClassAssocUtils.getNested(cls);
+        
+        if (nestedEntityTypes.isEmpty()) return ServiceDescription.from(annotation);
+        ServiceDescription[] descriptions = new ServiceDescription[nestedEntityTypes.size()];
+        descriptions = nestedEntityTypes.stream()
+            .map(c -> mappedServices.get(c.getName()))
+            .map(svcName -> {
+                try { return Class.forName(svcName); }
+                catch (ClassNotFoundException ex) { return null; }
+            }).filter(Objects::nonNull)
+            .map(svc -> describeNested(svc, false))
+            .collect(Collectors.toList()).toArray(descriptions);
+        return ServiceDescription.from(annotation, descriptions);
     }
 
     /**

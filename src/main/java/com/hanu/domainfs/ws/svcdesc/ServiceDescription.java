@@ -7,10 +7,16 @@ package com.hanu.domainfs.ws.svcdesc;
 final class ServiceDescription {
     private final String name;
     private final String endpoint;
+    private final ServiceDescription[] nested;
 
     private ServiceDescription(String name, String endpoint) {
+        this(name, endpoint, null);
+    }
+
+    private ServiceDescription(String name, String endpoint, ServiceDescription[] nested) {
         this.name = name;
         this.endpoint = endpoint;
+        this.nested = nested;
     }
 
     public String getName() {
@@ -21,8 +27,17 @@ final class ServiceDescription {
         return endpoint;
     }
 
+    public ServiceDescription[] getNested() {
+        return nested;
+    }
+
     public static ServiceDescription from(ServiceController annotation) {
         if (annotation == null) return null;
         return new ServiceDescription(annotation.name(), annotation.endpoint());
+    }
+
+    public static ServiceDescription from(ServiceController annotation, ServiceDescription[] nested) {
+        if (annotation == null) return null;
+        return new ServiceDescription(annotation.name(), annotation.endpoint(), nested);
     }
 }
