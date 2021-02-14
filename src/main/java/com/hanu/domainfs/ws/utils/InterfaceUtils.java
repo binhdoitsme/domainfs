@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.generators.utils;
+package com.hanu.domainfs.ws.utils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

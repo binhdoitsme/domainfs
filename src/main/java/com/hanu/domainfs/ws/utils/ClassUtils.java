@@ -1,16 +1,21 @@
-package com.hanu.domainfs.ws.svcdesc;
+package com.hanu.domainfs.ws.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utilities related to class manipulation.
  */
-final class ClassUtils {
+public final class ClassUtils {
+    
+    private static final Map<String, List<Class<?>>> cached = new HashMap<>();
+
     /**
      * Scans all classes accessible from the context class loader which belong to
      * the given package and subpackages.
@@ -22,6 +27,10 @@ final class ClassUtils {
      */
     public static List<Class<?>> getClasses(String packageName) 
             throws ClassNotFoundException, IOException {
+        if (cached.containsKey(packageName)) {
+            return cached.get(packageName);
+        }
+        
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
         String path = packageName.replace('.', '/');
@@ -35,6 +44,7 @@ final class ClassUtils {
         for (File directory : dirs) {
             classes.addAll(findClasses(directory, packageName));
         }
+        cached.put(packageName, classes);
         return classes;
     }
 

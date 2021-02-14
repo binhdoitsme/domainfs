@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.generators.utils;
+package com.hanu.domainfs.ws.utils;
 
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
