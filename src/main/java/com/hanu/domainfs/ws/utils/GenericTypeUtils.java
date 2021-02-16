@@ -2,32 +2,12 @@ package com.hanu.domainfs.ws.utils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javassist.bytecode.BadBytecode;
-import javassist.bytecode.SignatureAttribute;
-
 @SuppressWarnings("rawtypes")
 public final class GenericTypeUtils {
-    public static String genericFieldSignatureFrom(Class outer, Class... inners) {
-        try {
-            String signature = getGenericSignatureFrom(true, outer, inners);
-            return SignatureAttribute.toFieldSignature(signature).encode();
-        } catch (BadBytecode ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public static String genericTypeSignatureFrom(Class outer, Class... inners) {
-        try {
-            String signature = getGenericSignatureFrom(false, outer, inners);
-            return SignatureAttribute.toClassSignature(signature).encode();
-        } catch (BadBytecode ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
     private static String getGenericSignatureFrom(boolean hasOuterFirst, Class outer, Class... inners) {
         // <T:Ljava/lang/Object;ID:Ljava/lang/Object;>Ljava/lang/Object; class
-        // 
+        //
         StringBuilder nameBuilder = new StringBuilder();
         if (hasOuterFirst) {
             nameBuilder.append(getClassNameInByteForm(outer));

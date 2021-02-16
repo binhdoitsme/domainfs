@@ -2,6 +2,8 @@ package com.hanu.domainfs.ws.generators.services;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import com.hanu.domainfs.ws.generators.models.Page;
@@ -11,15 +13,25 @@ import domainapp.basics.model.query.Expression.Op;
 import domainapp.softwareimpl.SoftwareImpl;
 
 @SuppressWarnings({ "unchecked" })
-public class AbstractInheritedCrudService<T, ID extends Serializable> extends AbstractCrudService<T, ID>
+public class InheritedDomServiceAdapter<T, ID extends Serializable> extends SimpleDomServiceAdapter<T, ID>
         implements InheritedCrudService<T, ID> {
 
     protected final Map<String, String> subtypes;
 
     // autowired constructor
-    public AbstractInheritedCrudService(final SoftwareImpl sw, final Map<String, String> subtypes) {
+    // adapts SoftwareImpl to Service
+    public InheritedDomServiceAdapter(final SoftwareImpl sw, final Map<String, String> subtypes) {
         super(sw);
         this.subtypes = subtypes;
+    }
+
+    @Override
+    public Collection<T> getAllEntities() {
+        List<T> result = new LinkedList<>();
+        for (String subtypeId : subtypes.keySet()) {
+            result.addAll(getEntityListByType(subtypeId));
+        }
+        return result;
     }
 
     @Override

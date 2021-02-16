@@ -5,3 +5,10 @@ spring:
     username: root
   jackson:
     default-property-inclusion: non-null
+
+logging:
+  level:
+    root: "warn"
+    org.springframework.web: "debug"
+    org.hibernate: "error"
+

@@ -12,19 +12,23 @@ import domainapp.basics.exceptions.NotFoundException;
 import domainapp.basics.model.query.Expression.Op;
 import domainapp.softwareimpl.SoftwareImpl;
 
-public class AbstractCrudService<T, ID extends Serializable> 
+public class SimpleDomServiceAdapter<T, ID extends Serializable>
         implements CrudService<T, ID> {
     protected final SoftwareImpl sw;
-    private final Class<T> type;
+    private Class<T> type;
 
     // autowired constructor
-    protected AbstractCrudService(SoftwareImpl sw) {
+    protected SimpleDomServiceAdapter(SoftwareImpl sw) {
         this(null, sw);
     }
 
-    public AbstractCrudService(Class<T> type, SoftwareImpl sw) {
+    public SimpleDomServiceAdapter(Class<T> type, SoftwareImpl sw) {
         this.type = type;
         this.sw = sw;
+    }
+
+    protected void setType(Class<T> type) {
+        this.type = type;
     }
 
     @Override
@@ -48,12 +52,15 @@ public class AbstractCrudService<T, ID extends Serializable>
 
     @Override
     public Page<T> getEntityListByPage(int pageNumber, int itemPerPage) {
-        Collection<T> entities = getAllEntities();
-        final int size = entities.size();
-        if (pageNumber * itemPerPage < size) {
-            throw new NoSuchElementException("Not found");
+        Collection<T> entities = this.getAllEntities();
+        if (entities == null || entities.isEmpty()) {
+            return Page.empty();
         }
+        final int size = entities.size();
         final int skip = (pageNumber - 1) * itemPerPage;
+        if (skip > size) {
+            throw new NoSuchElementException("Not found: Page #" + pageNumber);
+        }
         final int pageCount = size / itemPerPage + size % itemPerPage > 0 ? 1 : 0;
         final Collection<T> pageContent = entities.stream().skip(skip)
                     .limit(itemPerPage).collect(Collectors.toList());
@@ -84,5 +91,5 @@ public class AbstractCrudService<T, ID extends Serializable>
             throw new RuntimeException(e);
         }
     }
-    
+
 }

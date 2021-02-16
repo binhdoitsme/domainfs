@@ -4,10 +4,6 @@ import java.io.Serializable;
 
 import com.hanu.domainfs.ws.generators.models.Page;
 
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
 /**
  * Represent a RESTful Web API endpoint.
  * Operations are grouped as C-R-U-D
@@ -19,34 +15,32 @@ public interface RestfulController<T, ID extends Serializable> {
      * @param inputEntity
      * @return the persisted entity
      */
-    T createEntity(@RequestBody T inputEntity);
+    T createEntity(T inputEntity);
 
     /**
      * Retrieve a paginated list of entities of type T.
      * @param pageNumber
      * @param count
      */
-    Page<T> getEntityListByPage(
-        @RequestParam(value = "page", defaultValue =  "1") int pageNumber,
-        @RequestParam(value = "count", defaultValue = "20") int count);
+    Page<T> getEntityListByPage(int pageNumber, int count);
 
     /**
      * Retrieve an entity instance by its identifier.
      * @param id
      */
-    T getEntityById(@RequestParam("id") ID id);
+    T getEntityById(ID id);
 
     /**
      * Update an entity instance
      * @param id
      * @param updatedInstance
      */
-    T updateEntity(@PathVariable("id") ID id, @RequestBody T updatedInstance);
+    T updateEntity(ID id, T updatedInstance);
 
 
     /**
      * Delete an entity instance
      * @param id
      */
-    void deleteEntityById(@PathVariable("id") ID id);
+    void deleteEntityById(ID id);
 }
