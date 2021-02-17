@@ -38,6 +38,11 @@ final class ServiceDescription {
 
     public static ServiceDescription from(ServiceController annotation, ServiceDescription[] nested) {
         if (annotation == null) return null;
+        int counter = 0;
+        for (ServiceDescription nestedDesc : nested) {
+            nested[counter++] = new ServiceDescription(nestedDesc.name,
+                annotation.endpoint() + "/{id}" + nestedDesc.endpoint);
+        }
         return new ServiceDescription(annotation.name(), annotation.endpoint(), nested);
     }
 }

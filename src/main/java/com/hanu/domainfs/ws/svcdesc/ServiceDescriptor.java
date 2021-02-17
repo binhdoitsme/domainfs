@@ -34,7 +34,7 @@ final class ServiceDescriptor {
     }
 
     private ServiceDescription describeNested(Class<?> serviceClass, boolean moreNesting) {
-        ServiceController annotation = 
+        ServiceController annotation =
             serviceClass.getAnnotation(ServiceController.class);
         if (annotation == null) return null;
         mappedServices.putIfAbsent(annotation.className(), serviceClass.getName());
@@ -46,9 +46,10 @@ final class ServiceDescriptor {
             throw new RuntimeException(ex);
         }
         List<Class<?>> nestedEntityTypes = ClassAssocUtils.getNested(cls);
-        
+
         if (nestedEntityTypes.isEmpty()) return ServiceDescription.from(annotation);
         ServiceDescription[] descriptions = new ServiceDescription[nestedEntityTypes.size()];
+
         descriptions = nestedEntityTypes.stream()
             .map(c -> mappedServices.get(c.getName()))
             .map(svcName -> {
@@ -68,11 +69,21 @@ final class ServiceDescriptor {
         for (Class<?> serviceClass : serviceClasses) {
             String fqClassName = serviceClass.getName();
             if (!descriptions.containsKey(fqClassName)) {
-                ServiceDescription description = describe(serviceClass);
+                ServiceDescription description = describeNested(serviceClass, false);
                 if (description == null) continue;
                 descriptions.put(fqClassName, description);
             }
-            serviceDescriptions.add(descriptions.get(fqClassName));
+        }
+        for (String className : descriptions.keySet()) {
+            Class<?> serviceClass;
+            try {
+                serviceClass = Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            ServiceDescription newDesc = describeNested(serviceClass, true);
+            descriptions.put(className, newDesc);
+            serviceDescriptions.add(newDesc);
         }
         return serviceDescriptions;
     }
@@ -87,7 +98,7 @@ final class ServiceDescriptor {
         } catch (ClassNotFoundException | IOException e) {
             throw new IllegalArgumentException("Invalid package name: " + packageName);
         }
-        
+
     }
 
     private static ServiceDescriptor instance;

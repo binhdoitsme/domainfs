@@ -13,6 +13,8 @@ import com.hanu.domainfs.ws.generators.services.SimpleDomServiceAdapter;
 import com.hanu.domainfs.ws.generators.services.InheritedDomServiceAdapter;
 import com.hanu.domainfs.ws.generators.services.CrudService;
 
+import com.hanu.domainfs.ws.utils.InheritanceUtils;
+import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,7 @@ public final class ServiceTypeGenerator {
     private static final Class crudServiceClass = CrudService.class;
     private static final Class absCrudServiceClass = SimpleDomServiceAdapter.class;
     private static final Class absInheritedCrudServiceClass = InheritedDomServiceAdapter.class;
-    
+
     private final Map<String, Class<?>> generatedServices;
 
     public ServiceTypeGenerator() {
@@ -38,43 +40,37 @@ public final class ServiceTypeGenerator {
     /**
      * Generate service types for autowiring.
      */
-    public <T, ID extends Serializable> Class<CrudService<T, ID>> 
+    public <T, ID extends Serializable> Class<CrudService<T, ID>>
             generateAutowiredServiceType(Class<T> type) {
         //
         String genericTypeName = type.getName();
 
         if (generatedServices.containsKey(genericTypeName)) {
-            return (Class<CrudService<T, ID>>) 
+            return (Class<CrudService<T, ID>>)
                 generatedServices.get(genericTypeName);
         }
 
-        final String name = crudServiceClass.getName() + "$$" 
+        final String name = crudServiceClass.getName() + "$$"
                                 + type.getSimpleName() + "Service";
 
         final String simpleName = type.getSimpleName().toLowerCase() + "Service";
 
-        // 
-        Unloaded unloaded = null;
-        Builder<Object> builder = null;
+        //
+        Unloaded unloaded;
         final boolean hasInherit = Modifier.isAbstract(type.getModifiers());
-        if (hasInherit) {
-            builder = new ByteBuddy().subclass(absInheritedCrudServiceClass);
-        } else {
-            builder = new ByteBuddy().subclass(absCrudServiceClass);
-        }
-        builder = builder.annotateType(
+        Class<CrudService> superClass = hasInherit ? absInheritedCrudServiceClass : absCrudServiceClass;
+        Builder<?> builder = new ByteBuddy()
+                    .subclass(superClass)
+                    .annotateType(
                     ofType(Service.class)
                         .define("value", simpleName)
                     .build());
-        try {
-            if (hasInherit) {
-                unloaded = generateServiceTypeWithInherit(builder, type, name);
-            } else {
-                unloaded = generateServiceType(builder, type, name);
-            }
-        } catch (SecurityException e) {
-            throw new RuntimeException(e);
+        if (hasInherit) {
+            unloaded = generateServiceTypeWithInherit(builder, type, name);
+        } else {
+            unloaded = generateServiceType(builder, type, name);
         }
+
         Class returning = saveAndReturnClass(unloaded, name);
         generatedServices.put(genericTypeName, returning);
         return (Class<CrudService<T, ID>>) returning;
@@ -106,10 +102,11 @@ public final class ServiceTypeGenerator {
 
         int numOfParams = absInheritedCrudServiceClass
                         .getDeclaredConstructors()[0].getParameterTypes().length;
+
         return builder
             .constructor(ElementMatchers.isConstructor()
                     .and(ElementMatchers.takesArguments(numOfParams)))
-            .intercept(
+            .intercept(Advice.to(InheritDomServiceAdapterConstructorAdvice.class).wrap(
                 MethodCall
                     .invoke(absInheritedCrudServiceClass
                         .getDeclaredConstructors()[0])
@@ -117,9 +114,10 @@ public final class ServiceTypeGenerator {
                 .andThen(MethodCall
                     .invoke(ElementMatchers.named("setType"))
                     .onSuper()
-                    .with(type)))
+                    .with(type))
+                ))
             .annotateMethod(ofType(Autowired.class).build())
-            .annotateParameter(1, 
+            .annotateParameter(1,
                     ofType(Qualifier.class)
                     .define("value", type.getName())
                     .build())
@@ -136,5 +134,11 @@ public final class ServiceTypeGenerator {
         }
     }
 
-    
+    static class InheritDomServiceAdapterConstructorAdvice {
+        @Advice.OnMethodExit
+        static void exit(@Advice.This InheritedDomServiceAdapter instance) {
+            instance.setSubtypes(InheritanceUtils.getSubtypeMapFor(instance.getType()));
+        }
+    }
+
 }

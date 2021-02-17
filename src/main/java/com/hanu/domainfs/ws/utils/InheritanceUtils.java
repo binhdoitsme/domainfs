@@ -33,7 +33,7 @@ public final class InheritanceUtils {
                                 .filter(p -> classPkg.contains(p))
                                 .findAny().orElse(null);
 
-        List<Class<?>> classes = null;
+        List<Class<?>> classes;
         try {
             classes = ClassUtils.getClasses(basePkg);
         } catch (ClassNotFoundException | IOException e) {
@@ -43,7 +43,7 @@ public final class InheritanceUtils {
         Map<String, String> subtypes = new HashMap<>();
 
         for (Class<?> cls : classes) {
-            if (supertype.isAssignableFrom(cls)) {
+            if (supertype.isAssignableFrom(cls) && cls != supertype) {
                 subtypes.put(cls.getSimpleName().toLowerCase(), cls.getName());
             }
         }

@@ -16,12 +16,16 @@ import domainapp.softwareimpl.SoftwareImpl;
 public class InheritedDomServiceAdapter<T, ID extends Serializable> extends SimpleDomServiceAdapter<T, ID>
         implements InheritedCrudService<T, ID> {
 
-    protected final Map<String, String> subtypes;
+    private Map<String, String> subtypes;
 
     // autowired constructor
     // adapts SoftwareImpl to Service
     public InheritedDomServiceAdapter(final SoftwareImpl sw, final Map<String, String> subtypes) {
         super(sw);
+        this.subtypes = subtypes;
+    }
+
+    public void setSubtypes(Map<String, String> subtypes) {
         this.subtypes = subtypes;
     }
 

@@ -27,6 +27,10 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
         this.sw = sw;
     }
 
+    public Class<T> getType() {
+        return type;
+    }
+
     protected void setType(Class<T> type) {
         this.type = type;
     }
