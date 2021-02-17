@@ -2,13 +2,14 @@ package com.hanu.domainfs.ws.generators.controllers;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.hanu.domainfs.ws.generators.models.Page;
 import com.hanu.domainfs.ws.generators.services.CrudService;
 
 import domainapp.basics.model.meta.DOpt;
@@ -24,12 +25,7 @@ public class SimpleNestedRestfulController<T1, ID1 extends Serializable, T2>
     @Override
     public T2 createInner(ID1 outerId, Map<String, String> requestBody) {
         // reflection-based solution -- needs HEAVY optimization
-        Method getEntityById;
-        try {
-            getEntityById = CrudService.class.getMethod("getEntityById", Serializable.class);
-        } catch (NoSuchMethodException | SecurityException ex) {
-            throw new RuntimeException(ex);
-        }
+        Method getEntityById = getMethodByName(CrudService.class, "getEntityById", Serializable.class);
 
         final Map<String, Object> inputs = new HashMap<>();
         for (String key : requestBody.keySet()) {
@@ -56,9 +52,29 @@ public class SimpleNestedRestfulController<T1, ID1 extends Serializable, T2>
         }
 
         try {
-            return (T2)requiredConstructor.newInstance(arguments);
-        } catch (InstantiationException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException ex) {
+            T2 instance = (T2) requiredConstructor.newInstance(arguments);
+            return getServiceOfGenericType(innerType).createEntity(instance);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private <U, ID extends Serializable> CrudService<U, ID> getServiceOfGenericType(Class<U> type) {
+        String serviceFieldName = type.getSimpleName().toLowerCase().concat("Service");
+        try {
+            Field serviceField = getClass().getDeclaredField(serviceFieldName);
+            serviceField.setAccessible(true);
+            return (CrudService<U, ID>) serviceField.get(this);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Method getMethodByName(Class<?> cls, String name, Class<?>... parameters) {
+        try {
+            return cls.getMethod(name, parameters);
+        } catch (NoSuchMethodException | SecurityException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -81,15 +97,18 @@ public class SimpleNestedRestfulController<T1, ID1 extends Serializable, T2>
     }
 
     @Override
-    public Page<T2> getInnerListByOuterId(ID1 outerId) {
+    public Collection<T2> getInnerListByOuterId(ID1 outerId) {
         // reflection-based solution -- needs HEAVY optimization
-        Method getEntityById;
+
+        T1 outerById = getServiceOfGenericType(outerType).getEntityById(outerId);
+        String getInnerMethodName = "get" + innerType.getSimpleName() + "s";
+        Method getInnersFromOuter = getMethodByName(outerType, getInnerMethodName);
         try {
-            getEntityById = CrudService.class.getMethod("getEntityById", Serializable.class);
-        } catch (NoSuchMethodException | SecurityException ex) {
-            throw new RuntimeException(ex);
+            return (Collection<T2>) getInnersFromOuter.invoke(outerById);
+        } catch (IllegalAccessException | IllegalArgumentException 
+                | InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
 }

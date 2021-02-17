@@ -2,7 +2,7 @@ package com.hanu.domainfs.ws.utils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "unused" })
 public final class GenericTypeUtils {
 
     private static String getGenericSignatureFrom(boolean hasOuterFirst, Class outer, Class... inners) {

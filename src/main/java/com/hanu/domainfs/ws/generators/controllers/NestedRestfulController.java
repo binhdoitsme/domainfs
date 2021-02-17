@@ -1,9 +1,8 @@
 package com.hanu.domainfs.ws.generators.controllers;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
-
-import com.hanu.domainfs.ws.generators.models.Page;
 
 /**
  * Represent a nested (level-1) resource endpoint.
@@ -24,5 +23,5 @@ public interface NestedRestfulController
      * Retrieve a list of inner object instances owned by the outer.
      * @param outerId
      */
-    Page<TInner> getInnerListByOuterId(IDOuter outerId);
+    Collection<TInner> getInnerListByOuterId(IDOuter outerId);
 }

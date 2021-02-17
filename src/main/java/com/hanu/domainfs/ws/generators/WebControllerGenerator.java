@@ -25,6 +25,7 @@ import com.hanu.domainfs.ws.svcdesc.ServiceController;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
 import com.hanu.domainfs.ws.utils.GenericTypeUtils;
 
+import org.modeshape.common.text.Inflector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -124,14 +125,17 @@ public class WebControllerGenerator {
         //
         final boolean hasInheritance = Modifier.isAbstract(type.getModifiers());
         final Class<RestfulController> baseClass = hasInheritance ? inheritRestCtrlClass : restCtrlClass;
-        final String endpoint = "/" + type.getSimpleName().toLowerCase() + "s";
+        final Inflector inflector = Inflector.getInstance();
+        final String endpoint = "/" +
+                inflector.underscore(
+                    inflector.pluralize(type.getSimpleName())).replace("_", "-");
         final String name = restCtrlClass.getName() + "$" + type.getSimpleName() + "Controller";
         Builder<RestfulController> builder =
             generateControllerType(baseClass, name, endpoint)
                 .annotateType(
                     ofType(ServiceController.class)
                         .define("endpoint", endpoint)
-                        .define("name", "Manage " + endpoint.substring(1))
+                        .define("name", "Manage " + inflector.humanize(inflector.pluralize(inflector.underscore(type.getSimpleName()))))
                         .define("className", type.getName())
                     .build());
 
@@ -150,53 +154,11 @@ public class WebControllerGenerator {
         final List<MethodDef> methodDefs =
             ImplementationStrategy.getStrategy("restful", serviceFieldName)
                 .implementMethods(baseClass);
-        // TODO: use self-defined annotations to bridge with framework-dependent
-        final AnnotationDescription[][] methodAnnotations = hasInheritance ?
-            new AnnotationDescription[][] {
-                { ofType(GetMapping.class).build() },
-                { ofType(PostMapping.class).build() },
-                { ofType(GetMapping.class).defineArray("value", "/{id}").build() },
-                {},
-                { ofType(PatchMapping.class).defineArray("value", "/{id}").build() },
-                { ofType(DeleteMapping.class).defineArray("value", "/{id}").build() }
-            } : new AnnotationDescription[][] {
-                { ofType(PostMapping.class).build() },
-                { ofType(GetMapping.class).defineArray("value", "/{id}").build() },
-                { ofType(GetMapping.class).build() },
-                { ofType(PatchMapping.class).defineArray("value", "/{id}").build() },
-                { ofType(DeleteMapping.class).defineArray("value", "/{id}").build() }
-            };
-        final AnnotationDescription[][] methodParamAnnotations = !hasInheritance ?
-            new AnnotationDescription[][]{
-                { ofType(RequestBody.class).build() },
-                { ofType(PathVariable.class).define("value", "id").build() },
-                { ofType(RequestParam.class)
-                    .define("value", "page").define("defaultValue", "1").build(),
-                  ofType(RequestParam.class)
-                    .define("value", "count").define("defaultValue", "20").build() },
-                { ofType(PathVariable.class).define("value", "id").build(),
-                  ofType(RequestBody.class).build() },
-                { ofType(PathVariable.class).define("value", "id").build() }
-            } : new AnnotationDescription[][] {
-                { ofType(RequestParam.class)
-                    .define("value", "page").define("defaultValue", "1").build(),
-                ofType(RequestParam.class)
-                    .define("value", "count").define("defaultValue", "20").build(),
-                ofType(RequestParam.class)
-                    .define("value", "type").define("required", false).build() },
-                { ofType(RequestBody.class).build() },
-                { ofType(PathVariable.class).define("value", "id").build() },
-                {},
-                { ofType(PathVariable.class).define("value", "id").build(),
-                    ofType(RequestBody.class).build() },
-                { ofType(PathVariable.class).define("value", "id").build() },
-
-            };
-        final AtomicInteger counter = new AtomicInteger();
+        
         for (MethodDef def : methodDefs) {
-            builder = generatePublicDelegatingMethod(builder, def,
-                        methodAnnotations[counter.get()],
-                        methodParamAnnotations[counter.getAndIncrement()]);
+            AnnotationDescription[] methodAnnotations = AnnotationUtils.getMethodAnnotations(def.getName(), hasInheritance);
+            AnnotationDescription[] paramAnnotations = AnnotationUtils.getParameterAnnotations(def.getName(), hasInheritance);
+            builder = generatePublicDelegatingMethod(builder, def, methodAnnotations, paramAnnotations);
         }
 
         Unloaded<RestfulController> unloaded = builder.make();
@@ -209,9 +171,10 @@ public class WebControllerGenerator {
             throws IllegalAccessException, IOException,
                 NoSuchMethodException, SecurityException {
         //
+        final Inflector inflector = Inflector.getInstance();
         final String endpoint =
-            "/" + outerType.getSimpleName().toLowerCase() + "s"
-                + "/{id}/" + innerType.getSimpleName().toLowerCase() + "s";
+            "/" + inflector.underscore(inflector.pluralize(outerType.getSimpleName())).replace("_", "-")
+                + "/{id}/" + inflector.underscore(inflector.pluralize(innerType.getSimpleName())).replace("_", "-");
         final String name = nestedRestCtrlClass.getName() + "$"
             + outerType.getSimpleName() + innerType.getSimpleName() + "Controller";
         Builder<NestedRestfulController> builder =
@@ -408,5 +371,92 @@ public class WebControllerGenerator {
         } catch (IOException | ClassNotFoundException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    // TODO: use self-defined annotations to bridge with framework-dependent
+    private static final class AnnotationUtils {
+        private static final Map<Boolean, Map<String, AnnotationDescription[][]>> annotationMap = new HashMap<>();
+
+        public static AnnotationDescription[] getMethodAnnotations(String methodName, boolean hasInherit) {
+            try {
+                return annotationMap.get(hasInherit).get(methodName)[0];
+            } catch (NullPointerException ex) {
+                return new AnnotationDescription[] {};
+            }
+        }
+
+        public static AnnotationDescription[] getParameterAnnotations(String methodName, boolean hasInherit) {
+            try {
+                return annotationMap.get(hasInherit).get(methodName)[1];
+            } catch (NullPointerException ex) {
+                return new AnnotationDescription[] {};
+            }
+        }
+
+        private static void addNoInheritMappings() {
+            final Map<String, AnnotationDescription[][]> noInheritMap = new HashMap<>();
+            noInheritMap.put("createEntity", new AnnotationDescription[][] {
+                { ofType(PostMapping.class).build() },
+                { ofType(RequestBody.class).build() }
+            });
+            noInheritMap.put("getEntityListByPage", new AnnotationDescription[][] {
+                { ofType(GetMapping.class).build() },
+                { ofType(RequestParam.class)
+                    .define("value", "page").define("defaultValue", "1").build(),
+                  ofType(RequestParam.class)
+                    .define("value", "count").define("defaultValue", "20").build() }
+            });
+            noInheritMap.put("getEntityById", new AnnotationDescription[][] {
+                { ofType(GetMapping.class).defineArray("value", "/{id}").build() },
+                { ofType(PathVariable.class).define("value", "id").build() }
+            });
+            noInheritMap.put("updateEntity", new AnnotationDescription[][] {
+                { ofType(PatchMapping.class).defineArray("value", "/{id}").build() },
+                { ofType(PathVariable.class).define("value", "id").build(),
+                  ofType(RequestBody.class).build() }
+            });
+            noInheritMap.put("deleteEntityById", new AnnotationDescription[][] {
+                { ofType(DeleteMapping.class).defineArray("value", "/{id}").build() },
+                { ofType(PathVariable.class).define("value", "id").build() }
+            });
+            annotationMap.put(false, noInheritMap);
+        }
+
+        private static void addInheritMappings() {
+            final Map<String, AnnotationDescription[][]> inheritMap = new HashMap<>();
+            inheritMap.put("createEntity", new AnnotationDescription[][] {
+                { ofType(PostMapping.class).build() },
+                { ofType(RequestBody.class).build() }
+            });
+            inheritMap.put("getEntityListByTypeAndPage", new AnnotationDescription[][] {
+                { ofType(GetMapping.class).build() },
+                { ofType(RequestParam.class)
+                    .define("value", "type").define("required", false).build() ,
+                ofType(RequestParam.class)
+                    .define("value", "page").define("defaultValue", "1").build(),
+                ofType(RequestParam.class)
+                    .define("value", "count").define("defaultValue", "20").build()}
+            });
+            inheritMap.put("getEntityById", new AnnotationDescription[][] {
+                { ofType(GetMapping.class).defineArray("value", "/{id}").build() },
+                { ofType(PathVariable.class).define("value", "id").build() }
+            });
+            inheritMap.put("updateEntity", new AnnotationDescription[][] {
+                { ofType(PatchMapping.class).defineArray("value", "/{id}").build() },
+                { ofType(PathVariable.class).define("value", "id").build(),
+                  ofType(RequestBody.class).build() }
+            });
+            inheritMap.put("deleteEntityById", new AnnotationDescription[][] {
+                { ofType(DeleteMapping.class).defineArray("value", "/{id}").build() },
+                { ofType(PathVariable.class).define("value", "id").build() }
+            });
+            annotationMap.put(true, inheritMap);
+        }
+
+        static {
+            addNoInheritMappings();
+            addInheritMappings();
+        }
+
     }
 }

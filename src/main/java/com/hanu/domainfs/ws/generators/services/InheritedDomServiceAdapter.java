@@ -37,18 +37,27 @@ public class InheritedDomServiceAdapter<T, ID extends Serializable> extends Simp
     @Override
     public Collection<T> getEntityListByType(String type) {
         try {
+            if (type == null) {
+                Collection<T> collection = new LinkedList<>();
+                for (String subtype : subtypes.keySet()) {
+                    Class<T> cls = (Class<T>) Class.forName(subtype);
+                    collection.addAll(sw.retrieveObjects(cls, "id", Op.GT, "0"));
+                }
+                return collection;
+            }
             String fqTypeName = subtypes.get(type);
             Class<T> cls = (Class<T>) Class.forName(fqTypeName);
             return sw.retrieveObjects(cls, "id", Op.GT, "0");
         } catch (ClassNotFoundException | DataSourceException e) {
             throw new RuntimeException(e);
-        }        
+        }
     }
 
     @Override
     public Page<T> getEntityListByTypeAndPage(String type, int page, int count) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO ignoring page and count for ease of development
+        Collection<T> retrieved = getEntityListByType(type);
+        return new Page<>(1, 1, retrieved);
     }
-    
+
 }

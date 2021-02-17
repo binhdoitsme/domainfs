@@ -18,7 +18,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import domainapp.basics.exceptions.DataSourceException;
@@ -26,7 +25,6 @@ import domainapp.basics.exceptions.NotFoundException;
 import domainapp.basics.exceptions.NotPossibleException;
 import domainapp.software.SoftwareFactory;
 import domainapp.softwareimpl.SoftwareImpl;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  *
