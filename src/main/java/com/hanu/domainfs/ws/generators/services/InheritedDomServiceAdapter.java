@@ -20,7 +20,8 @@ public class InheritedDomServiceAdapter<T, ID extends Serializable> extends Simp
 
     // autowired constructor
     // adapts SoftwareImpl to Service
-    public InheritedDomServiceAdapter(final SoftwareImpl sw, final Map<String, String> subtypes) {
+    public InheritedDomServiceAdapter(final SoftwareImpl sw,
+                                      final Map<String, String> subtypes) {
         super(sw);
         this.subtypes = subtypes;
     }

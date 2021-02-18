@@ -7,10 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.hanu.domainfs.ws.generators.controllers.NestedRestfulController;
@@ -92,7 +89,7 @@ public class WebControllerGenerator {
         try {
             String typeName = type.getName();
             if (!generatedCrudClasses.containsKey(typeName)) {
-                Class<ID> idType = (Class<ID>) type.getDeclaredField("id").getType();
+                Class<ID> idType = (Class<ID>)GenericTypeUtils.getWrapperClass(type.getDeclaredField("id").getType());
                 generatedCrudClasses.put(typeName,
                     generateRestfulController(type, idType));
             }
@@ -112,7 +109,7 @@ public class WebControllerGenerator {
         try {
             return generateNestedRestfulController(outerType, innerType);
         } catch (IllegalAccessException | IOException
-                | NoSuchMethodException ex) {
+                | NoSuchMethodException | NoSuchFieldException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -131,7 +128,7 @@ public class WebControllerGenerator {
                     inflector.pluralize(type.getSimpleName())).replace("_", "-");
         final String name = restCtrlClass.getName() + "$" + type.getSimpleName() + "Controller";
         Builder<RestfulController> builder =
-            generateControllerType(baseClass, name, endpoint)
+            generateControllerType(baseClass, name, endpoint, type, idType)
                 .annotateType(
                     ofType(ServiceController.class)
                         .define("endpoint", endpoint)
@@ -154,7 +151,7 @@ public class WebControllerGenerator {
         final List<MethodDef> methodDefs =
             ImplementationStrategy.getStrategy("restful", serviceFieldName)
                 .implementMethods(baseClass);
-        
+
         for (MethodDef def : methodDefs) {
             AnnotationDescription[] methodAnnotations = AnnotationUtils.getMethodAnnotations(def.getName(), hasInheritance);
             AnnotationDescription[] paramAnnotations = AnnotationUtils.getParameterAnnotations(def.getName(), hasInheritance);
@@ -168,8 +165,8 @@ public class WebControllerGenerator {
     private <T1, ID1 extends Serializable, T2>
         Class<NestedRestfulController<T1, ID1, T2>>
         generateNestedRestfulController(Class<T1> outerType, Class<T2> innerType)
-            throws IllegalAccessException, IOException,
-                NoSuchMethodException, SecurityException {
+        throws IllegalAccessException, IOException,
+            NoSuchMethodException, SecurityException, NoSuchFieldException {
         //
         final Inflector inflector = Inflector.getInstance();
         final String endpoint =
@@ -177,8 +174,11 @@ public class WebControllerGenerator {
                 + "/{id}/" + inflector.underscore(inflector.pluralize(innerType.getSimpleName())).replace("_", "-");
         final String name = nestedRestCtrlClass.getName() + "$"
             + outerType.getSimpleName() + innerType.getSimpleName() + "Controller";
+        final Class<?> outerIdType = GenericTypeUtils.getWrapperClass(
+            outerType.getDeclaredField("id").getType());
         Builder<NestedRestfulController> builder =
-            generateControllerType(nestedRestCtrlImplClass, name, endpoint);
+            generateControllerType(nestedRestCtrlImplClass, name, endpoint,
+                outerType, outerIdType, innerType);
 
         try {
             // service field(s)
@@ -225,9 +225,10 @@ public class WebControllerGenerator {
     }
 
     private <T> Builder<T> generateControllerType(
-            Class<T> supertype, String name, String endpoint) {
-        Builder<T> builder = new ByteBuddy()
-            .subclass(supertype,
+            Class<T> supertype, String name, String endpoint, Class<?>... genericTypes) {
+        Builder<T> builder = (Builder<T>) new ByteBuddy()
+            .subclass(TypeDescription.Generic.Builder
+                    .parameterizedType(supertype, genericTypes).build(),
                 ConstructorStrategy.Default.NO_CONSTRUCTORS)
             .annotateType(
                 ofType(RestController.class).build()
@@ -306,7 +307,7 @@ public class WebControllerGenerator {
         final List<TypeDefinition> params = new LinkedList<>();
 
         final boolean isInterface = Modifier.isInterface(domClass.getModifiers());
-        String superName = source.toTypeDescription().getSuperClass().getActualName();
+        String superName = source.toTypeDescription().getSuperClass().asErasure().getName();
         Constructor<?> superCtor = isInterface ? Object.class.getConstructor()
                 : Class.forName(superName).getConstructor();
         Composable body = MethodCall.invoke(superCtor);

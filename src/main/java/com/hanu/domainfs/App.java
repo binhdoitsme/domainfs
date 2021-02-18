@@ -13,7 +13,6 @@ import domainapp.software.SoftwareFactory;
 import domainapp.softwareimpl.SoftwareImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,7 +20,6 @@ import org.springframework.context.annotation.Configuration;
  *
  */
 @SpringBootApplication
-@EntityScan
 public class App {
 
     // 1. initialise the model
