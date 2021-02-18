@@ -1,8 +1,26 @@
 package com.hanu.domainfs.ws.generators;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
 
+import org.modeshape.common.text.Inflector;
+
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.ByteBuddyAgent;
+import net.bytebuddy.asm.MemberAttributeExtension;
+import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
+
+import static net.bytebuddy.matcher.ElementMatchers.*;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @SuppressWarnings({ "rawtypes" })
 public class WebServiceGenerator {
@@ -28,8 +46,49 @@ public class WebServiceGenerator {
         this.generateCompleteCallback = generateCompleteCallback;
     }
 
+    private static String[] getIgnoredFields(Class<?>[] defined) {
+        final List<String> result = new ArrayList<>();
+        for (Class<?> cls : defined) {
+            for (Field f : cls.getDeclaredFields()) {
+                if (isDefinedTypeField(f)) {
+                    result.add(f.getName());
+                }
+            }
+        }
+        return result.toArray(new String[result.size()]);
+    }
+
+    private static boolean isDefinedTypeField(Field f) {
+        Class<?> type = f.getType();
+        Class<?> declaringType = f.getDeclaringClass();
+        String rootPackage = Stream
+            .of(declaringType.getClassLoader().getDefinedPackages())
+            .map(p -> p.getName())
+            .filter(declaringType.getName()::contains)
+            .sorted()
+            .findFirst().orElse("");
+        return type.getName().contains(rootPackage) && !type.isPrimitive();
+    }
+
+    private void generateCircularAnnotations(Class<?> cls, Class<?>[] defined) {
+        ByteBuddyAgent.install();
+        Builder<?> builder = new ByteBuddy().rebase(cls);
+        final String[] ignoredFields = getIgnoredFields(defined);
+        for (Field f : cls.getDeclaredFields()) {
+            if (!isDefinedTypeField(f)) continue;
+            builder = builder.field(is(f))
+                .annotateField(AnnotationDescription.Builder
+                    .ofType(JsonIgnoreProperties.class)
+                    .defineArray("value", ignoredFields)
+                    .build());
+        }
+        builder.make()
+            .load(cls.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
+    }
+
     public void generateWebService(Class... classes) {
         for (Class<?> cls : classes) {
+            generateCircularAnnotations(cls, classes);
             serviceTypeGenerator.generateAutowiredServiceType(cls);
             webControllerGenerator.getRestfulController(cls);
             List<Class<?>> nestedClasses = ClassAssocUtils.getNested(cls);

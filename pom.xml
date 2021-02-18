@@ -16,6 +16,13 @@
 	<dependencies>
 
 		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy-agent</artifactId>
+			<version>1.10.20</version>
+		</dependency>
+
+
+		<dependency>
 			<groupId>org.modeshape</groupId>
 			<artifactId>modeshape-common</artifactId>
 			<version>5.4.1.Final</version>
