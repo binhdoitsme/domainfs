@@ -1,26 +1,20 @@
 package com.hanu.domainfs.ws.generators;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.hanu.domainfs.ws.utils.ClassAssocUtils;
-
-import org.modeshape.common.text.Inflector;
-
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.agent.ByteBuddyAgent;
-import net.bytebuddy.asm.MemberAttributeExtension;
-import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
-
-import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.matcher.ElementMatchers.is;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hanu.domainfs.ws.utils.ClassAssocUtils;
+
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.ByteBuddyAgent;
+import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 
 @SuppressWarnings({ "rawtypes" })
 public class WebServiceGenerator {
