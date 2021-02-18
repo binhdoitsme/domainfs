@@ -21,6 +21,7 @@ import com.hanu.domainfs.ws.generators.services.InheritedCrudService;
 import com.hanu.domainfs.ws.svcdesc.ServiceController;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
 import com.hanu.domainfs.ws.utils.GenericTypeUtils;
+import com.hanu.domainfs.ws.utils.NamingUtils;
 
 import org.modeshape.common.text.Inflector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +127,8 @@ public class WebControllerGenerator {
         final String endpoint = "/" +
                 inflector.underscore(
                     inflector.pluralize(type.getSimpleName())).replace("_", "-");
-        final String name = restCtrlClass.getName() + "$" + type.getSimpleName() + "Controller";
+        final String pkg = type.getPackage().getName().replace("model", "controllers");
+        final String name = NamingUtils.classNameFrom(pkg, restCtrlClass, "Controller", type);
         Builder<RestfulController> builder =
             generateControllerType(baseClass, name, endpoint, type, idType)
                 .annotateType(
@@ -172,8 +174,8 @@ public class WebControllerGenerator {
         final String endpoint =
             "/" + inflector.underscore(inflector.pluralize(outerType.getSimpleName())).replace("_", "-")
                 + "/{id}/" + inflector.underscore(inflector.pluralize(innerType.getSimpleName())).replace("_", "-");
-        final String name = nestedRestCtrlClass.getName() + "$"
-            + outerType.getSimpleName() + innerType.getSimpleName() + "Controller";
+        final String pkg = outerType.getPackage().getName().replace("model", "controllers");
+        final String name = NamingUtils.classNameFrom(pkg, nestedRestCtrlClass, "Controller", outerType, innerType);
         final Class<?> outerIdType = GenericTypeUtils.getWrapperClass(
             outerType.getDeclaredField("id").getType());
         Builder<NestedRestfulController> builder =

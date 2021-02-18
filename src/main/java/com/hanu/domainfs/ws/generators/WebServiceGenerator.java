@@ -5,10 +5,10 @@ import static net.bytebuddy.matcher.ElementMatchers.is;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
+import com.hanu.domainfs.ws.utils.PackageUtils;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;
@@ -55,13 +55,8 @@ public class WebServiceGenerator {
     private static boolean isDefinedTypeField(Field f) {
         Class<?> type = f.getType();
         Class<?> declaringType = f.getDeclaringClass();
-        String rootPackage = Stream
-            .of(declaringType.getClassLoader().getDefinedPackages())
-            .map(p -> p.getName())
-            .filter(declaringType.getName()::contains)
-            .sorted()
-            .findFirst().orElse("");
-        return type.getName().contains(rootPackage) && !type.isPrimitive();
+        String rootPackage = PackageUtils.basePackageOf(declaringType);
+        return type.getName().contains(rootPackage);
     }
 
     private void generateCircularAnnotations(Class<?> cls, Class<?>[] defined) {

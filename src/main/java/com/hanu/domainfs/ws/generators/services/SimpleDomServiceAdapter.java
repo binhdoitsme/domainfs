@@ -83,7 +83,7 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
     @Override
     public T updateEntity(T entity) {
         // TODO Auto-generated method stub
-        return null;
+        return entity;
     }
 
     @Override
