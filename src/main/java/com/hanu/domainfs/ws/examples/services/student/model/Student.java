@@ -1,9 +1,6 @@
 package com.hanu.domainfs.ws.examples.services.student.model;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
 import com.hanu.domainfs.ws.examples.exceptions.DExCode;
 import com.hanu.domainfs.ws.examples.services.enrolment.model.Enrolment;
@@ -28,7 +25,7 @@ import domainapp.basics.util.Tuple;
 /**
  * Represents a student. The student ID is auto-incremented from the current
  * year.
- * 
+ *
  * @author dmle
  * @version 2.0
  */
@@ -44,12 +41,12 @@ public class Student {
   public static final String A_rptStudentByCity = "rptStudentByCity";
 
   // attributes of students
-  @DAttr(name = A_id, id = true, type = Type.String, auto = true, length = 6, 
+  @DAttr(name = A_id, id = true, type = Type.String, auto = true, length = 6,
       mutable = false, optional = false)
   private String id;
   //static variable to keep track of student id
   private static int idCounter = 0;
- 
+
   @DAttr(name = A_name, type = Type.String, length = 30, optional = false, cid=true)
   private String name;
 
@@ -58,7 +55,7 @@ public class Student {
 
   @DAttr(name = A_dob, type = Type.Date, length = 15, optional = false)
   private Date dob;
-  
+
   @DAttr(name = A_address, type = Type.Domain, length = 20, optional = true)
   @DAssoc(ascName="student-has-city",role="student",
       ascType=AssocType.One2One, endType=AssocEndType.One,
@@ -79,57 +76,62 @@ public class Student {
   @DAssoc(ascName="student-has-enrolments",role="student",
       ascType=AssocType.One2Many,endType=AssocEndType.One,
     associate=@Associate(type=Enrolment.class,cardMin=0,cardMax=30))
-  private Collection<Enrolment> enrolments;  
+  private Collection<Enrolment> enrolments;
 
   // derived
   private int enrolmentCount;
 
   // v2.6.4b: derived: average of the final mark of all enrolments
   private double averageMark;
-  
+
   // v5.3: to realise link to report
-  @DAttr(name=A_rptStudentByName,type=Type.Domain, serialisable=false, 
+  @DAttr(name=A_rptStudentByName,type=Type.Domain, serialisable=false,
       // IMPORTANT: set virtual=true to exclude this attribute from the object state
       // (avoiding the view having to load this attribute's value from data source)
       virtual=true)
   private StudentsByNameReport rptStudentByName;
-  
+
   // v5.0: to realise link to report
-  @DAttr(name=A_rptStudentByCity,type=Type.Domain, serialisable=false, 
+  @DAttr(name=A_rptStudentByCity,type=Type.Domain, serialisable=false,
       // IMPORTANT: set virtual=true to exclude this attribute from the object state
       // (avoiding the view having to load this attribute's value from data source)
       virtual=true)
   private StudentsByCityJoinReport rptStudentByCity;
-  
+
+  private Student() {
+      enrolments = new ArrayList<>();
+      this.id = nextID(null);
+  }
+
   // constructor methods
   // for creating in the application
   // without SClass
   @DOpt(type=DOpt.Type.ObjectFormConstructor)
   @DOpt(type=DOpt.Type.RequiredConstructor)
-  public Student(@AttrRef("name") String name, 
+  public Student(@AttrRef("name") String name,
       @AttrRef("gender") Gender gender,
-      @AttrRef("dob") Date dob, 
-      @AttrRef("address") City address, 
+      @AttrRef("dob") Date dob,
+      @AttrRef("address") City address,
       @AttrRef("email") String email) {
     this(null, name, gender, dob, address, email, null);
   }
-  
+
   @DOpt(type=DOpt.Type.ObjectFormConstructor)
-  public Student(@AttrRef("name") String name, 
+  public Student(@AttrRef("name") String name,
       @AttrRef("gender") Gender gender,
-      @AttrRef("dob") Date dob, 
-      @AttrRef("address") City address, 
-      @AttrRef("email") String email, 
+      @AttrRef("dob") Date dob,
+      @AttrRef("address") City address,
+      @AttrRef("email") String email,
       @AttrRef("sclass") SClass sclass) {
     this(null, name, gender, dob, address, email, sclass);
   }
-  
+
   // a shared constructor that is invoked by other constructors
   @DOpt(type=DOpt.Type.DataSourceConstructor)
-  public Student(@AttrRef("id") String id, 
+  public Student(@AttrRef("id") String id,
       @AttrRef("dob") String name, @AttrRef("gender") Gender gender,
-      @AttrRef("dob") Date dob, @AttrRef("address") City address, 
-      @AttrRef("email") String email, @AttrRef("sclass") SClass sclass) 
+      @AttrRef("dob") Date dob, @AttrRef("address") City address,
+      @AttrRef("email") String email, @AttrRef("sclass") SClass sclass)
   throws ConstraintViolationException {
     // generate an id
     this.id = nextID(id);
@@ -141,7 +143,7 @@ public class Student {
     this.address = address;
     this.email = email;
     this.sclass = sclass;
-    
+
     enrolments = new ArrayList<>();
     enrolmentCount = 0;
     averageMark = 0D;
@@ -157,14 +159,14 @@ public class Student {
     if (dob.before(DToolkit.MIN_DOB)) {
       throw new ConstraintViolationException(DExCode.INVALID_DOB, dob);
     }
-    
+
     this.dob = dob;
   }
 
   public void setGender(Gender gender) {
     this.gender = gender;
   }
-  
+
   public void setAddress(City address) {
     this.address = address;
   }
@@ -174,10 +176,10 @@ public class Student {
     // change this invocation if need to perform other tasks (e.g. updating value of a derived attribtes)
     setAddress(address);
   }
-  
+
   public void setEmail(String email) throws ConstraintViolationException {
     if (email.indexOf("@") < 0) {
-      throw new ConstraintViolationException(ConstraintViolationException.Code.INVALID_VALUE, 
+      throw new ConstraintViolationException(ConstraintViolationException.Code.INVALID_VALUE,
           new Object[] {"'" + email + "' (does not have '@') "});
     }
     this.email = email;
@@ -186,38 +188,38 @@ public class Student {
   public void setSclass(SClass cls) {
     this.sclass = cls;
   }
-  
+
   @DOpt(type=DOpt.Type.LinkAdder)
   //only need to do this for reflexive association: @MemberRef(name="enrolments")
   public boolean addEnrolment(Enrolment e) {
     if (!enrolments.contains(e))
       enrolments.add(e);
-    
+
     // IMPORTANT: enrolment count must be updated separately by invoking setEnrolmentCount
     // otherwise computeAverageMark (below) can not be performed correctly
     // WHY? average mark is not serialisable
 //    enrolmentCount++;
-//    
+//
 //    // v2.6.4.b
 //    computeAverageMark();
-    
+
     // no other attributes changed
-    return false; 
+    return false;
   }
 
   @DOpt(type=DOpt.Type.LinkAdderNew)
   public boolean addNewEnrolment(Enrolment e) {
     enrolments.add(e);
-    
+
     enrolmentCount++;
-    
+
     // v2.6.4.b
     computeAverageMark();
-    
+
     // no other attributes changed (average mark is not serialisable!!!)
-    return false; 
+    return false;
   }
-  
+
   @DOpt(type=DOpt.Type.LinkAdder)
   //@MemberRef(name="enrolments")
   public boolean addEnrolment(Collection<Enrolment> enrols) {
@@ -239,34 +241,34 @@ public class Student {
 //    }
 
     // no other attributes changed
-    return false; 
+    return false;
   }
 
   @DOpt(type=DOpt.Type.LinkAdderNew)
   public boolean addNewEnrolment(Collection<Enrolment> enrols) {
     enrolments.addAll(enrols);
     enrolmentCount+=enrols.size();
-    
+
     // v2.6.4.b
     computeAverageMark();
 
     // no other attributes changed (average mark is not serialisable!!!)
-    return false; 
+    return false;
   }
-  
+
   @DOpt(type=DOpt.Type.LinkRemover)
   //@MemberRef(name="enrolments")
   public boolean removeEnrolment(Enrolment e) {
     boolean removed = enrolments.remove(e);
-    
+
     if (removed) {
       enrolmentCount--;
-      
+
       // v2.6.4.b
       computeAverageMark();
     }
     // no other attributes changed
-    return false; 
+    return false;
   }
 
   @DOpt(type=DOpt.Type.LinkUpdater)
@@ -274,34 +276,34 @@ public class Student {
   public boolean updateEnrolment(Enrolment e)  throws IllegalStateException {
     // recompute using just the affected enrolment
     double totalMark = averageMark * enrolmentCount;
-    
+
     int oldFinalMark = e.getFinalMark(true);
-    
+
     int diff = e.getFinalMark() - oldFinalMark;
-    
-    // TODO: cache totalMark if needed 
-    
+
+    // TODO: cache totalMark if needed
+
     totalMark += diff;
-    
+
     averageMark = totalMark / enrolmentCount;
-    
+
     // no other attributes changed
-    return true; 
+    return true;
   }
 
   public void setEnrolments(Collection<Enrolment> en) {
     this.enrolments = en;
     enrolmentCount = en.size();
-    
+
     // v2.6.4.b
     computeAverageMark();
   }
-  
+
   // v2.6.4.b
   /**
-   * @effects 
-   *  computes {@link #averageMark} of all the {@link Enrolment#getFinalMark()}s 
-   *  (in {@link #enrolments}.  
+   * @effects
+   *  computes {@link #averageMark} of all the {@link Enrolment#getFinalMark()}s
+   *  (in {@link #enrolments}.
    */
   private void computeAverageMark() {
     if (enrolmentCount > 0) {
@@ -309,18 +311,18 @@ public class Student {
       for (Enrolment e : enrolments) {
         totalMark += e.getFinalMark();
       }
-      
+
       averageMark = totalMark / enrolmentCount;
     } else {
       averageMark = 0;
     }
   }
-  
+
   // v2.6.4.b
   public double getAverageMark() {
     return averageMark;
   }
-  
+
   // getter methods
   public String getId() {
     return id;
@@ -333,7 +335,7 @@ public class Student {
   public Gender getGender() {
     return gender;
   }
-  
+
   public Date getDob() {
     return dob;
   }
@@ -349,7 +351,7 @@ public class Student {
   public SClass getSclass() {
     return sclass;
   }
-  
+
   public Collection<Enrolment> getEnrolments() {
     return enrolments;
   }
@@ -378,7 +380,7 @@ public class Student {
   public StudentsByCityJoinReport getRptStudentByCity() {
     return rptStudentByCity;
   }
-  
+
   // override toString
   /**
    * @effects returns <code>this.id</code>
@@ -398,7 +400,7 @@ public class Student {
     else
       return "Student(" + id + ")";
   }
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -442,39 +444,39 @@ public class Student {
         throw new ConstraintViolationException(
             ConstraintViolationException.Code.INVALID_VALUE, e, new Object[] { id });
       }
-      
+
       if (num > idCounter) {
         idCounter = num;
       }
-      
+
       return id;
     }
   }
 
   /**
-   * @requires 
+   * @requires
    *  minVal != null /\ maxVal != null
-   * @effects 
+   * @effects
    *  update the auto-generated value of attribute <tt>attrib</tt>, specified for <tt>derivingValue</tt>, using <tt>minVal, maxVal</tt>
    */
   @DOpt(type=DOpt.Type.AutoAttributeValueSynchroniser)
   public static void updateAutoGeneratedValue(
       DAttr attrib,
-      Tuple derivingValue, 
-      Object minVal, 
+      Tuple derivingValue,
+      Object minVal,
       Object maxVal) throws ConstraintViolationException {
-    
+
     if (minVal != null && maxVal != null) {
-      //TODO: update this for the correct attribute if there are more than one auto attributes of this class 
+      //TODO: update this for the correct attribute if there are more than one auto attributes of this class
 
       String maxId = (String) maxVal;
-      
+
       try {
         int maxIdNum = Integer.parseInt(maxId.substring(1));
-        
+
         if (maxIdNum > idCounter) // extra check
           idCounter = maxIdNum;
-        
+
       } catch (RuntimeException e) {
         throw new ConstraintViolationException(
             ConstraintViolationException.Code.INVALID_VALUE, e, new Object[] {maxId});

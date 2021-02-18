@@ -18,9 +18,9 @@ import domainapp.basics.util.cache.StateHistory;
 
 /**
  * Represents an enrolment
- * 
+ *
  * @author dmle
- * 
+ *
  */
 @DClass(schema = "courseman")
 public class Enrolment implements Comparable {
@@ -28,31 +28,31 @@ public class Enrolment implements Comparable {
   private static final String AttributeName_InternalMark = "internalMark";
   private static final String AttributeName_ExamMark = "examMark";
   private static final String AttributeName_FinalMark = "finalMark";
-  
+
   // attributes
   @DAttr(name = "id", id = true, auto = true, type = Type.Integer, length = 5, optional = false, mutable = false)
   private int id;
   private static int idCounter = 0;
 
   @DAttr(name = "student", type = Type.Domain, length = 5, optional = false)
-  @DAssoc(ascName = "student-has-enrolments", role = "enrolment", 
-    ascType = AssocType.One2Many, endType = AssocEndType.Many, 
+  @DAssoc(ascName = "student-has-enrolments", role = "enrolment",
+    ascType = AssocType.One2Many, endType = AssocEndType.Many,
     associate = @Associate(type = Student.class, cardMin = 1, cardMax = 1), dependsOn = true)
   private Student student;
 
   @DAttr(name = "module", type = Type.Domain, length = 5, optional = false)
-  @DAssoc(ascName = "module-has-enrolments", role = "enrolment", 
-    ascType = AssocType.One2Many, endType = AssocEndType.Many, 
+  @DAssoc(ascName = "module-has-enrolments", role = "enrolment",
+    ascType = AssocType.One2Many, endType = AssocEndType.Many,
     associate = @Associate(type = CourseModule.class, cardMin = 1, cardMax = 1), dependsOn = true)
   private CourseModule module;
 
   @DAttr(name = AttributeName_InternalMark, type = Type.Double, length = 4, optional = true, min = 0.0)
   private Double internalMark;
-  
+
   @DAttr(name = AttributeName_ExamMark, type = Type.Double, length = 4, optional = true, min = 0.0)
   private Double examMark;
 
-  @DAttr(name="finalGrade",auto = true, type = Type.Char, length = 1,mutable = false, optional = true 
+  @DAttr(name="finalGrade",auto = true, type = Type.Char, length = 1,mutable = false, optional = true
       /* Note: no need to do this:
        derivedFrom={"internalMark,examMark"}
        * because finalGrade and finalMark are updated by the same method and this is already specified by finalMark (below)
@@ -69,18 +69,23 @@ public class Enrolment implements Comparable {
   // v2.6.4.b
   private StateHistory<String, Object> stateHist;
 
+  private Enrolment() {
+      this.id = nextID(null);
+      this.stateHist = new StateHistory<>();
+  }
+
   // constructor method
   @DOpt(type=DOpt.Type.ObjectFormConstructor)
   @DOpt(type=DOpt.Type.RequiredConstructor)
-  public Enrolment(@AttrRef("student") Student s, 
+  public Enrolment(@AttrRef("student") Student s,
       @AttrRef("module") CourseModule m) throws ConstraintViolationException {
     this(null, s, m, 0.0, 0.0, null);
   }
 
   @DOpt(type=DOpt.Type.ObjectFormConstructor)
-  public Enrolment(@AttrRef("student") Student s, 
-      @AttrRef("module") CourseModule m, 
-      @AttrRef("internalMark") Double internalMark, 
+  public Enrolment(@AttrRef("student") Student s,
+      @AttrRef("module") CourseModule m,
+      @AttrRef("internalMark") Double internalMark,
       @AttrRef("examMark") Double examMark)
       throws ConstraintViolationException {
     this(null, s, m, internalMark, examMark, null);
@@ -89,7 +94,7 @@ public class Enrolment implements Comparable {
   // @version 2.0
   @DOpt(type=DOpt.Type.DataSourceConstructor)
   public Enrolment(Integer id, Student s, CourseModule m, Double internalMark,
-      Double examMark, 
+      Double examMark,
       // v2.7.3: not used but needed to load data from source
       Character finalGrade) throws ConstraintViolationException {
     this.id = nextID(id);
@@ -102,7 +107,7 @@ public class Enrolment implements Comparable {
     // v2.6.4.b
     stateHist = new StateHistory<>();
 
-    updateFinalMark(); 
+    updateFinalMark();
   }
 
   // setter methods
@@ -115,25 +120,25 @@ public class Enrolment implements Comparable {
   }
 
   public void setInternalMark(Double mark) {
-    // update final grade = false: to keep the integrity of its cached value 
+    // update final grade = false: to keep the integrity of its cached value
     setInternalMark(mark, false);
   }
 
   public void setInternalMark(Double mark, boolean updateFinalGrade) {
     this.internalMark = mark;
     if (updateFinalGrade)
-      updateFinalMark(); 
+      updateFinalMark();
   }
 
   public void setExamMark(Double mark) {
-    // update final grade = false: to keep the integrity of its cached value 
+    // update final grade = false: to keep the integrity of its cached value
     setExamMark(mark, false);
   }
-  
+
   public void setExamMark(Double mark, boolean updateFinalGrade) {
     this.examMark = mark;
     if (updateFinalGrade)
-      updateFinalMark(); 
+      updateFinalMark();
   }
 
   @DOpt(type=DOpt.Type.DerivedAttributeUpdater)
@@ -142,7 +147,7 @@ public class Enrolment implements Comparable {
     // updates both final mark and final grade
     if (internalMark != null && examMark != null) {
       double finalMarkD = 0.4 * internalMark + 0.6 * examMark;
-      
+
       // v2.6.4b: cache final mark
       stateHist.put(AttributeName_FinalMark, finalMark);
 
@@ -156,10 +161,10 @@ public class Enrolment implements Comparable {
       else if (finalMark <= 7)
         finalGrade = 'G';
       else
-        finalGrade = 'E';      
+        finalGrade = 'E';
     }
   }
-  
+
   // getter methods
   public int getId() {
     return id;
@@ -218,7 +223,7 @@ public class Enrolment implements Comparable {
     if (full)
       return "Enrolment(" + student + "," + module + ")";
     else
-      return "Enrolment(" + getId() + "," + 
+      return "Enrolment(" + getId() + "," +
             ((student != null) ? student.getId() : "null") + "," +
             ((module != null) ? module.getCode() : "null") + ")";
   }
