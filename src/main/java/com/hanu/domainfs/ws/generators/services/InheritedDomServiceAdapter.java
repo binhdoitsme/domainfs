@@ -45,7 +45,7 @@ public class InheritedDomServiceAdapter<T, ID extends Serializable> extends Simp
             if (type == null) {
                 Collection<T> collection = new LinkedList<>();
                 for (String subtype : subtypes.keySet()) {
-                    Class<T> cls = (Class<T>) Class.forName(subtype);
+                    Class<T> cls = (Class<T>) Class.forName(subtypes.get(subtype));
                     collection.addAll(sw.retrieveObjects(cls, "id", Op.GT, "0"));
                 }
                 return collection;

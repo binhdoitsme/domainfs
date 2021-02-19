@@ -12,3 +12,5 @@ logging:
     org.springframework.web: "debug"
     org.hibernate: "error"
 
+basePackage:
+  com.hanu.domainfs.ws

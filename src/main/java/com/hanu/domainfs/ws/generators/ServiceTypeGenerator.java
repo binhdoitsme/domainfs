@@ -27,13 +27,22 @@ import net.bytebuddy.matcher.ElementMatchers;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public final class ServiceTypeGenerator {
+    private static ServiceTypeGenerator INSTANCE;
+
+    public static ServiceTypeGenerator instance() {
+        if (INSTANCE == null) {
+            INSTANCE = new ServiceTypeGenerator();
+        }
+        return INSTANCE;
+    }
+
     private static final Class crudServiceClass = CrudService.class;
     private static final Class absCrudServiceClass = SimpleDomServiceAdapter.class;
     private static final Class absInheritedCrudServiceClass = InheritedDomServiceAdapter.class;
 
     private final Map<String, Class<?>> generatedServices;
 
-    public ServiceTypeGenerator() {
+    private ServiceTypeGenerator() {
         generatedServices = new ConcurrentHashMap<>();
     }
 

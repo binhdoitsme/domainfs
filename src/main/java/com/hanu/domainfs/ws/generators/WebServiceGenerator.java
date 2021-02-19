@@ -1,20 +1,10 @@
 package com.hanu.domainfs.ws.generators;
 
-import static net.bytebuddy.matcher.ElementMatchers.is;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
-import com.hanu.domainfs.ws.utils.PackageUtils;
-
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.agent.ByteBuddyAgent;
-import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
+import com.hanu.domainfs.ws.utils.InheritanceUtils;
 
 @SuppressWarnings({ "rawtypes" })
 public class WebServiceGenerator {
@@ -29,55 +19,29 @@ public class WebServiceGenerator {
 
     private final WebControllerGenerator webControllerGenerator;
     private final ServiceTypeGenerator serviceTypeGenerator;
+    private final AnnotationGenerator annotationGenerator;
     private Runnable generateCompleteCallback;
 
     public WebServiceGenerator() {
         this.webControllerGenerator = WebControllerGenerator.instance();
-        this.serviceTypeGenerator = new ServiceTypeGenerator();
+        this.serviceTypeGenerator = ServiceTypeGenerator.instance();
+        this.annotationGenerator = AnnotationGenerator.instance();
     }
 
     public void setGenerateCompleteCallback(Runnable generateCompleteCallback) {
         this.generateCompleteCallback = generateCompleteCallback;
     }
 
-    private static String[] getIgnoredFields(Class<?>[] defined) {
-        final List<String> result = new ArrayList<>();
-        for (Class<?> cls : defined) {
-            for (Field f : cls.getDeclaredFields()) {
-                if (isDefinedTypeField(f)) {
-                    result.add(f.getName());
-                }
-            }
-        }
-        return result.toArray(new String[result.size()]);
-    }
-
-    private static boolean isDefinedTypeField(Field f) {
-        Class<?> type = f.getType();
-        Class<?> declaringType = f.getDeclaringClass();
-        String rootPackage = PackageUtils.basePackageOf(declaringType);
-        return type.getName().contains(rootPackage);
-    }
-
-    private void generateCircularAnnotations(Class<?> cls, Class<?>[] defined) {
-        ByteBuddyAgent.install();
-        Builder<?> builder = new ByteBuddy().rebase(cls);
-        final String[] ignoredFields = getIgnoredFields(defined);
-        for (Field f : cls.getDeclaredFields()) {
-            if (!isDefinedTypeField(f)) continue;
-            builder = builder.field(is(f))
-                .annotateField(AnnotationDescription.Builder
-                    .ofType(JsonIgnoreProperties.class)
-                    .defineArray("value", ignoredFields)
-                    .build());
-        }
-        builder.make()
-            .load(cls.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
-    }
-
+    /**
+     * Generate a simple RESTful Web Service from a number of domain classes.
+     * @param classes
+     */
     public void generateWebService(Class... classes) {
+        List<Class<?>> ignored = getIgnoredClasses(classes);
         for (Class<?> cls : classes) {
-            generateCircularAnnotations(cls, classes);
+            if (ignored.contains(cls)) continue;
+            annotationGenerator.generateCircularAnnotations(cls, classes);
+            annotationGenerator.generateInheritanceAnnotations(cls);
             serviceTypeGenerator.generateAutowiredServiceType(cls);
             webControllerGenerator.getRestfulController(cls);
             List<Class<?>> nestedClasses = ClassAssocUtils.getNested(cls);
@@ -87,6 +51,17 @@ public class WebServiceGenerator {
             }
         }
         onGenerateComplete();
+    }
+
+    /**
+     * Ignored classes are subclasses of others.
+     */
+    private static List<Class<?>> getIgnoredClasses(Class[] classes) {
+        return Stream.of(classes).map(c -> InheritanceUtils.getSubtypesOf(c))
+                .reduce((l1, l2) -> {
+                    l1.addAll(l2);
+                    return l1;
+                }).orElse(List.of());
     }
 
     private void onGenerateComplete() {

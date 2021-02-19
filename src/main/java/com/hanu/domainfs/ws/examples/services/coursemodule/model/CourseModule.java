@@ -26,7 +26,7 @@ public abstract class CourseModule {
   private int id;
   private static int idCounter;
 
-  @DAttr(name="code",auto=true,type=Type.String, length=6,
+  @DAttr(name="code",auto=true,type=Type.String, length=12,
       mutable=false,optional=false,derivedFrom={"semester"})
   private String code;
 
@@ -42,7 +42,7 @@ public abstract class CourseModule {
   private static Map<Tuple,Integer> currNums = new LinkedHashMap<Tuple,Integer>();
 
   protected CourseModule() {
-      id = nextID(null);
+    id = nextID(null);
   }
 
   // constructor method: create objects from data source

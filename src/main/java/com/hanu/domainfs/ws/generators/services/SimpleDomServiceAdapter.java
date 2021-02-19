@@ -12,6 +12,7 @@ import domainapp.basics.exceptions.NotFoundException;
 import domainapp.basics.model.query.Expression.Op;
 import domainapp.softwareimpl.SoftwareImpl;
 
+@SuppressWarnings("unchecked")
 public class SimpleDomServiceAdapter<T, ID extends Serializable>
         implements CrudService<T, ID> {
     protected final SoftwareImpl sw;
@@ -38,7 +39,7 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
     @Override
     public T createEntity(T entity) {
         try {
-            sw.addObject(type, entity);
+            sw.addObject((Class<T>)entity.getClass(), entity);
             return entity;
         } catch (DataSourceException e) {
             throw new RuntimeException(e);

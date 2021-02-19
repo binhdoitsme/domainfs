@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 /**
  * Utilities related to inheritance (subtype-mapping).
@@ -22,17 +22,11 @@ public final class InheritanceUtils {
      */
     public static Map<String, String> getSubtypeMapFor(Class<?> supertype) {
         String supertypeName = supertype.getName();
-
         if (cachedSubtypes.containsKey(supertypeName)) {
             return cachedSubtypes.get(supertypeName);
         }
 
-        String classPkg = supertype.getPackageName();
-        String basePkg = Stream.of(supertype.getClassLoader().getDefinedPackages())
-                                .map(p -> p.getName())
-                                .filter(p -> classPkg.contains(p))
-                                .findAny().orElse(null);
-
+        String basePkg = PackageUtils.basePackageOf(supertype);
         List<Class<?>> classes;
         try {
             classes = ClassUtils.getClasses(basePkg);
@@ -41,15 +35,41 @@ public final class InheritanceUtils {
         }
 
         Map<String, String> subtypes = new HashMap<>();
-
         for (Class<?> cls : classes) {
             if (supertype.isAssignableFrom(cls) && cls != supertype) {
-                subtypes.put(cls.getSimpleName().toLowerCase(), cls.getName());
+                subtypes.put(NamingUtils.subtypeShortNameFrom(cls), cls.getName());
             }
         }
-
         cachedSubtypes.put(supertypeName, subtypes);
 
         return subtypes;
+    }
+
+    private static Class<?> classFromName(String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Return subtypes of {@link#supertype}.
+     * @param supertype
+     * @return
+     */
+    public static List<Class<?>> getSubtypesOf(Class<?> supertype) {
+        String supertypeName = supertype.getName();
+
+        if (cachedSubtypes.containsKey(supertypeName)) {
+            return cachedSubtypes.get(supertypeName)
+                    .values()
+                    .stream()
+                    .map(InheritanceUtils::classFromName)
+                    .collect(Collectors.toList());
+        } else {
+            getSubtypeMapFor(supertype);
+            return getSubtypesOf(supertype);
+        }
     }
 }

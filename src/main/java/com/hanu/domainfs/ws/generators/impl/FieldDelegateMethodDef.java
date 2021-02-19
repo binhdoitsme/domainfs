@@ -5,8 +5,10 @@ import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.module.paranamer.ParanamerModule;
 import com.hanu.domainfs.ws.generators.controllers.RestfulController;
+import com.hanu.domainfs.ws.utils.PackageUtils;
 
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.Implementation;
@@ -59,6 +61,10 @@ final class FieldDelegateMethodDef extends MethodDef {
                           @Advice.This RestfulController<?, ?> instance) {
             try {
                 final ObjectMapper mapper = getMapper();
+                mapper.activateDefaultTyping(
+                    BasicPolymorphicTypeValidator.builder()
+                        .allowIfBaseType(PackageUtils.basePackageOf(instance.getClass()))
+                        .build());
                 String json = mapper.writeValueAsString(body);
                 Class<?> genericClass = (Class) ((ParameterizedType) instance.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
                 body = mapper.readValue(json, genericClass);
@@ -79,6 +85,10 @@ final class FieldDelegateMethodDef extends MethodDef {
                           @Advice.This RestfulController<?, ?> instance) {
             try {
                 final ObjectMapper mapper = getMapper();
+                mapper.activateDefaultTyping(
+                    BasicPolymorphicTypeValidator.builder()
+                        .allowIfBaseType(PackageUtils.basePackageOf(instance.getClass()))
+                        .build());
                 String json = mapper.writeValueAsString(body);
                 Class<?> genericClass = (Class) ((ParameterizedType) instance.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
                 body = mapper.readValue(json, genericClass);

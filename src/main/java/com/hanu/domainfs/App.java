@@ -1,6 +1,8 @@
 package com.hanu.domainfs;
 
+import com.hanu.domainfs.ws.examples.services.coursemodule.model.CompulsoryModule;
 import com.hanu.domainfs.ws.examples.services.coursemodule.model.CourseModule;
+import com.hanu.domainfs.ws.examples.services.coursemodule.model.ElectiveModule;
 import com.hanu.domainfs.ws.examples.services.enrolment.model.Enrolment;
 import com.hanu.domainfs.ws.examples.services.sclass.model.SClass;
 import com.hanu.domainfs.ws.examples.services.student.model.City;
@@ -11,6 +13,7 @@ import domainapp.basics.exceptions.NotFoundException;
 import domainapp.basics.exceptions.NotPossibleException;
 import domainapp.software.SoftwareFactory;
 import domainapp.softwareimpl.SoftwareImpl;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -25,8 +28,8 @@ public class App {
     // 1. initialise the model
     static final Class<?>[] model = {
         CourseModule.class,
-//        CompulsoryModule.class,
-//        ElectiveModule.class,
+        CompulsoryModule.class,
+        ElectiveModule.class,
         Enrolment.class,
         Student.class,
         City.class,
