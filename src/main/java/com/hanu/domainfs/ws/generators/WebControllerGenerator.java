@@ -58,7 +58,7 @@ import net.bytebuddy.implementation.MethodCall;
  * @author binh_dh
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class WebControllerGenerator {
+class WebControllerGenerator {
 
     private static final WebControllerGenerator instance = new WebControllerGenerator();
 
@@ -127,7 +127,7 @@ public class WebControllerGenerator {
         final String endpoint = "/" +
                 inflector.underscore(
                     inflector.pluralize(type.getSimpleName())).replace("_", "-");
-        final String pkg = type.getPackage().getName().replace("model", "controllers");
+        final String pkg = type.getPackage().getName().replace(".model", "");
         final String name = NamingUtils.classNameFrom(pkg, restCtrlClass, "Controller", type);
         Builder<RestfulController> builder =
             generateControllerType(baseClass, name, endpoint, type, idType)
@@ -174,7 +174,7 @@ public class WebControllerGenerator {
         final String endpoint =
             "/" + inflector.underscore(inflector.pluralize(outerType.getSimpleName())).replace("_", "-")
                 + "/{id}/" + inflector.underscore(inflector.pluralize(innerType.getSimpleName())).replace("_", "-");
-        final String pkg = outerType.getPackage().getName().replace("model", "controllers");
+        final String pkg = outerType.getPackage().getName().replace(".model", "");
         final String name = NamingUtils.classNameFrom(pkg, nestedRestCtrlClass, "Controller", outerType, innerType);
         final Class<?> outerIdType = GenericTypeUtils.getWrapperClass(
             outerType.getDeclaredField("id").getType());

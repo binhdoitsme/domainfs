@@ -14,6 +14,8 @@ import com.hanu.domainfs.ws.generators.services.InheritedDomServiceAdapter;
 import com.hanu.domainfs.ws.generators.services.CrudService;
 
 import com.hanu.domainfs.ws.utils.InheritanceUtils;
+import com.hanu.domainfs.ws.utils.NamingUtils;
+
 import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,7 +28,7 @@ import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.matcher.ElementMatchers;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public final class ServiceTypeGenerator {
+final class ServiceTypeGenerator {
     private static ServiceTypeGenerator INSTANCE;
 
     public static ServiceTypeGenerator instance() {
@@ -59,8 +61,8 @@ public final class ServiceTypeGenerator {
                 generatedServices.get(genericTypeName);
         }
 
-        final String name = crudServiceClass.getName() + "$$"
-                                + type.getSimpleName() + "Service";
+        final String name = NamingUtils.classNameFrom(type.getPackageName().replace(".model", ""), 
+                                crudServiceClass, "Service", type);
 
         final String simpleName = type.getSimpleName().toLowerCase() + "Service";
 
