@@ -1,17 +1,10 @@
 package com.hanu.domainfs.frontend;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-import com.hanu.domainfs.frontend.models.SourceSegment;
-import com.hanu.domainfs.frontend.models.StateInitializer;
-import com.hanu.domainfs.frontend.models.ViewAPI;
-import com.hanu.domainfs.frontend.models.ViewComponent;
+import com.hanu.domainfs.frontend.models.*;
 import com.hanu.domainfs.frontend.models.ViewAPI.APICallMethod;
-import com.hanu.domainfs.frontend.models.components.InputType;
-import com.hanu.domainfs.frontend.models.components.ViewComponentGenerator;
+import com.hanu.domainfs.frontend.models.components.*;
 
 public final class App {
     public static void main(String[] args) {
@@ -26,29 +19,30 @@ public final class App {
         System.out.println(label.toSourceCode());
         System.out.println();
 
-        ViewComponent input = ViewComponentGenerator.generate("input", attrs, null, InputType.Type.NUMBER);
-        System.out.println(input.toSourceCode());
-        System.out.println();
+        // ViewComponent input = ViewComponentGenerator.generate("input", attrs, null, InputType.Type.NUMBER);
+        // System.out.println(input.toSourceCode());
+        // System.out.println();
 
         final Map<String, Object> initialStates = new TreeMap<>();
         initialStates.put("items", new Object[] {});
         initialStates.put("currentPage", "undefined");
         initialStates.put("pageCount", "undefined");
-        SourceSegment stateInit = new StateInitializer(initialStates);
-        System.out.println(stateInit.toSourceCode());
-        System.out.println();
+        // ViewClass viewCreateClass;
+        System.out.println(new Modal("Title", Map.of(), List.of()).toSourceCode());
 
 
-        APICallMethod getById = new APICallMethod("getById",
+
+        SourceSegment getById = new APICallMethod("getById",
             new String[] { "id" }, "/students/{id}", false);
-        APICallMethod create = new APICallMethod("create",
+        SourceSegment create = new APICallMethod("create",
             new String[] { }, "/students", true);
-        APICallMethod updateById = new APICallMethod("updateById",
+        SourceSegment updateById = new APICallMethod("updateById",
             new String[] { "id" }, "/students", true);
-        APICallMethod getByPage = new APICallMethod("getByPage", 
+        SourceSegment getByPage = new APICallMethod("getByPage", 
             new String[] { "page" }, "/students?page={page}", false);
         ViewAPI viewAPI = new ViewAPI("StudentAPI", 
             List.of(getById, create, updateById, getByPage));
         System.out.println(viewAPI.toSourceCode());
+        
     }
 }

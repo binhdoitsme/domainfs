@@ -4,7 +4,9 @@ public interface SourceSegment {
     /**
      * Transform and persist this to source code form.
      */
-    String toSourceCode();
+    default String toSourceCode() {
+        return getImplementationStrategy().implement(this);
+    }
 
     /**
      * Get the implementation strategy used to implement <code>this</code>.

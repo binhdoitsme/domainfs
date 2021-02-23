@@ -5,10 +5,10 @@ import java.util.Map;
 class Button extends LeafViewComponent {
 
     public Button(String content) {
-        super("Button", content);
+        super("ViewLib.Button", content);
     }
 
     public Button(String content, Map<String, Object> attributes) {
-        super("Button", content, attributes, false);
+        super("ViewLib.Button", content, attributes, false);
     }
 }

@@ -1,5 +1,5 @@
 package com.hanu.domainfs.frontend.models;
 
-public abstract class ViewList implements View {
+public abstract class ViewList implements ViewClass {
     
 }

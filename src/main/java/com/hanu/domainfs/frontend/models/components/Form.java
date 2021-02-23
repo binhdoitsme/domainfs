@@ -9,7 +9,7 @@ class Form extends NestableViewComponent {
 
     public Form(String content, Map<String, Object> attributes, List<ViewComponent> innerComponents,
             boolean contentFirst) {
-        super("Form", content, attributes, innerComponents, contentFirst);
+        super("ViewLib.Form", content, attributes, innerComponents, contentFirst);
     }
     
 }

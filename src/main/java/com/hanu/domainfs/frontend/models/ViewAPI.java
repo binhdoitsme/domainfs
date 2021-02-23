@@ -3,11 +3,11 @@ package com.hanu.domainfs.frontend.models;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ViewAPI extends SourceImpl {
+public class ViewAPI extends SourceImpl implements ClassComponent {
     private String name;
-    private List<APICallMethod> methods;
+    private List<SourceSegment> methods;
 
-    public ViewAPI(String name, List<APICallMethod> methods) {
+    public ViewAPI(String name, List<SourceSegment> methods) {
         this.name = name;
         this.methods = new LinkedList<>(methods);
     }
@@ -19,52 +19,58 @@ public class ViewAPI extends SourceImpl {
     }
 
     @Override
-    public ImplementationStrategy getImplementationStrategy() {
-        return new Implementation();
+    public String getName() {
+        return this.name;
     }
 
-    private class Implementation implements ImplementationStrategy {
-        @Override
-        public String implement(SourceSegment src) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("import * from '../commons/APIUtils';\n");
-            stringBuilder.append("export default class ").append(name).append(" {\n");
-            for (APICallMethod method : methods) {
-                stringBuilder.append("\s\s").append(method.toSourceCode()).append("\n");
-            }
-            stringBuilder.append("};");
-            return stringBuilder.toString();
-        }
+    @Override
+    public List<SourceSegment> getImportStatements() {
+        return List.of(
+            new StringBasedSourceSegment("import toBackend from '../commons/APIUtils';"));
+    }
+
+    @Override
+    public List<SourceSegment> getMethods() {
+        return this.methods;
     }
     
-    public static class APICallMethod implements SourceSegment {
-        
-        private static final String TEMPLATE = 
-            "%s(%sonSuccess, onFailure) { makeRequest(%s, %sonSuccess, onFailure); }";
+    public static class APICallMethod extends InstanceMethod {
 
-        private final String name;
-        private final String[] paramNames;
         private final String endpointPlaceholder;
 
         public APICallMethod(String name, String[] paramNames,
                              String endpointPlaceholder, boolean hasBody) {
-            this.name = name;
+            super(name, actualParams(paramNames, hasBody));
             this.endpointPlaceholder = endpointPlaceholder;
-            if (hasBody) {
-                this.paramNames = paramsWithBody(paramNames);
-            } else {
-                this.paramNames = paramNames;
-            }
+        }
+
+        @Override
+        public SourceSegment getBody() {
+            String paramStr = String.join(", ", getParamNames());
+            return new StringBasedSourceSegment(
+                String.format("toBackend.makeRequest(%s, %s);",
+                    "\"" + endpointPlaceholder + "\"", paramStr));
         }
 
         @Override
         public ImplementationStrategy getImplementationStrategy() {
-            return new Implementation();
+            return this;
         }
 
-        @Override
-        public String toSourceCode() {
-            return getImplementationStrategy().implement(this);   
+        private static String[] actualParams(String[] params, boolean hasBody) {
+            if (hasBody) return paramsWithSuccessHandling(paramsWithBody(params));
+            return paramsWithSuccessHandling(params);
+        }
+
+        private static String[] paramsWithSuccessHandling(String[] originalParams) {
+            final int originalLength = originalParams.length;
+            String[] paramNames = new String[originalLength + 2];
+            for (int i = 0; i < originalLength; i++) {
+                paramNames[i] = originalParams[i];
+            }
+            paramNames[originalLength] = "onSuccess";
+            paramNames[originalLength + 1] = "onFailure";
+            return paramNames;
         }
 
         private static String[] paramsWithBody(String[] originalParams) {
@@ -77,17 +83,6 @@ public class ViewAPI extends SourceImpl {
             return paramNames;
         }
 
-        private final class Implementation implements ImplementationStrategy {
-
-            @Override
-            public String implement(SourceSegment src) {
-                String paramStr = String.join(", ", paramNames);
-                paramStr = paramStr.isEmpty() ? "" : paramStr + ", ";
-                return String.format(TEMPLATE, name,
-                    paramStr,
-                    "\"" + endpointPlaceholder + "\"", paramStr);
-            }
-            
-        }        
+        
     }
 }
