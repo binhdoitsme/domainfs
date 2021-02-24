@@ -9,7 +9,7 @@ class ViewLibImportStatement implements SourceSegment, ImplementationStrategy {
 
     @Override
     public String implement(SourceSegment src) {
-        return "import ViewFramework from \"" + path + "\";";
+        return "import ViewLib from \"" + path + "\";";
     }
 
     @Override

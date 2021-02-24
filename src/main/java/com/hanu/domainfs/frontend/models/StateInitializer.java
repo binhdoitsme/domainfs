@@ -36,11 +36,13 @@ public class StateInitializer implements SourceSegment {
 
     }
 
-    private static final String toStateString(String key, Object value) {
+    static final String toStateString(String key, Object value) {
         String valueStr;
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long
-                || value instanceof Float || value instanceof Double || value == null || value.equals("undefined")) {
-            valueStr = value.toString();
+        if (value instanceof Byte || value instanceof Short 
+            || value instanceof Integer || value instanceof Long
+            || value instanceof Float || value instanceof Double 
+            || value == null || value.equals("undefined")) {
+            valueStr = value == null ? "null" : value.toString();
         } else if (value instanceof String || value instanceof Character) {
             valueStr = "\"" + value.toString() + "\"";
         } else {

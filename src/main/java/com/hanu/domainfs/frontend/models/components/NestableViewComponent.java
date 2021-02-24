@@ -28,6 +28,11 @@ abstract class NestableViewComponent implements ViewLayout, ImplementationStrate
         this.contentFirst = contentFirst;
     }
 
+    public NestableViewComponent(String tagName, Map<String, Object> attrs, 
+                                 List<ViewComponent> innerCommponents) {
+        this(tagName, null, attrs, innerCommponents, false);
+    }
+
     public NestableViewComponent(String tagName, String content) {
         this(tagName, content, new LinkedHashMap<>(), new LinkedList<>(), false);
     }

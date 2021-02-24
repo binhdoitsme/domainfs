@@ -1,11 +1,10 @@
 package com.hanu.domainfs.frontend.models;
 
-import static com.hanu.domainfs.frontend.models.IndentationUtils.*;
-
-class RenderMethod implements SourceSegment, ImplementationStrategy {
+class RenderMethod extends InstanceMethod {
     private ViewClass view;
     
     public RenderMethod(ViewClass view) {
+        super("render", null);
         this.view = view;
     }
 
@@ -13,14 +12,9 @@ class RenderMethod implements SourceSegment, ImplementationStrategy {
     public ImplementationStrategy getImplementationStrategy() {
         return this;
     }
-    
+
     @Override
-    public String implement(SourceSegment src) {
-        RenderMethod renderMethod = (RenderMethod) src;
-        StringBuilder result = new StringBuilder();
-        result.append("render() {").append("\n").append("\s\s").append("return (\n");
-        result.append(indentStringBy(2, renderMethod.view.toSourceCode()));
-        result.append("\s\s);").append("\n}");
-        return result.toString();
+    public SourceSegment getBody() {
+        return new ReturnStatement(this.view.getLayout());
     }
 }

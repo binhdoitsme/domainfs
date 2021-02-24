@@ -28,7 +28,10 @@ abstract class InstanceMethod implements SourceSegment, ImplementationStrategy {
     public String implement(SourceSegment src) {
         StringBuilder sb = new StringBuilder();
         sb.append(name)
-            .append("(").append(String.join(", ", getParamNames())).append(")")
+            .append("(")
+                .append(getParamNames() == null ? 
+                        "" : String.join(", ", getParamNames()))
+                .append(")")
             .append(" {").append("\n")
             .append(IndentationUtils.indentStringBy(1, getBody().toSourceCode()))
             .append("}");

@@ -1,5 +1,6 @@
 package com.hanu.domainfs.frontend.models;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -11,12 +12,6 @@ public interface ViewClass extends ClassComponent {
      * Get the initializer for the state of this.
      */
     SourceSegment getStateInitializer();
-
-    /**
-     * 
-     * @param layout
-     */
-    void setLayout(ViewLayout layout);
 
     /**
      * 
@@ -36,15 +31,19 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     private String name;
     private List<SourceSegment> methods;
     private SourceSegment stateInitializer;
+    private SourceSegment renderMethod;
 
     public AbstractViewClass(String name, SourceSegment stateInitializer,
                              List<SourceSegment> methods) {
         this.name = name;
-        this.methods = methods;
+        this.methods = new LinkedList<>(methods);
         this.stateInitializer = stateInitializer;
+        this.renderMethod = new RenderMethod(this);
     }
 
-    protected abstract SourceSegment getRenderMethod();
+    protected SourceSegment getRenderMethod() {
+        return renderMethod;
+    }
 
     @Override
     public String getName() {
@@ -54,7 +53,7 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     @Override
     public List<SourceSegment> getMethods() {
         final SourceSegment renderMethod = getRenderMethod();
-        if (!methods.contains(renderMethod)) {
+        if (!methods.contains(renderMethod) && renderMethod != null) {
             methods.add(renderMethod);
         }
         return methods;
