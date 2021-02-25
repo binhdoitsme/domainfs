@@ -5,7 +5,7 @@ import java.util.Map;
 class FormLabel extends LeafViewComponent {
 
     public FormLabel(String content, Map<String, Object> attributes) {
-        super("ViewLib.Form.Label", content, attributes, false);
+        super("Form.Label", content, attributes, false);
     }
     
 }

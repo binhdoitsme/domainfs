@@ -3,7 +3,7 @@ package com.hanu.domainfs.frontend.models;
 /**
  * Unsafe source segment. Use this at your own risk.
  */
-class StringBasedSourceSegment implements SourceSegment {
+public class StringBasedSourceSegment implements SourceSegment {
     private final String source;
 
     public StringBasedSourceSegment(String source) {

@@ -2,6 +2,8 @@ package com.hanu.domainfs.frontend.models;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ViewCreate extends AbstractViewClass {
     private String viewLib;
@@ -18,8 +20,18 @@ public class ViewCreate extends AbstractViewClass {
 
     @Override
     public List<SourceSegment> getImportStatements() {
+        final Set<String> definedTagNames = new TreeSet<>();
+        ViewComponent.traverseWithSideEffects(getLayout(), 
+            vc -> {
+                String tagName = vc.tagName();
+                if (tagName.contains(".")) 
+                    definedTagNames.add(tagName.split("\\.")[0]);
+                else definedTagNames.add(tagName);
+            });
+
         return List.of(
-            new ViewLibImportStatement(this.viewLib)
+            new ImportStatement(this.viewLib, 
+                definedTagNames.toArray(new String[definedTagNames.size()]))
         );
     }
 

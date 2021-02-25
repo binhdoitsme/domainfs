@@ -8,7 +8,7 @@ import com.hanu.domainfs.frontend.models.ViewComponent;
 class Form extends NestableViewComponent {
 
     public Form(Map<String, Object> attributes, List<ViewComponent> innerComponents) {
-        super("ViewLib.Form", attributes, innerComponents);
+        super("Form", attributes, innerComponents);
     }
     
 }

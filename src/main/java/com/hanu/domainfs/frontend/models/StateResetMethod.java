@@ -13,7 +13,7 @@ public class StateResetMethod extends InstanceMethod {
 
     @Override
     public SourceSegment getBody() {
-        return new MethodCall("setState", initialStates);
+        return new SelfMethodCall("setState", initialStates);
     }
     
 }

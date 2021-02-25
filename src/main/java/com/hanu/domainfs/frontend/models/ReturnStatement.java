@@ -1,6 +1,6 @@
 package com.hanu.domainfs.frontend.models;
 
-class ReturnStatement implements SourceSegment, ImplementationStrategy {
+public class ReturnStatement implements SourceSegment, ImplementationStrategy {
     private SourceSegment expr;
 
     public ReturnStatement(SourceSegment expression) {

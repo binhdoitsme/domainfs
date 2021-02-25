@@ -26,7 +26,7 @@ public class ViewAPI extends SourceImpl implements ClassComponent {
     @Override
     public List<SourceSegment> getImportStatements() {
         return List.of(
-            new StringBasedSourceSegment("import toBackend from '../commons/APIUtils';"));
+            new ImportStatement("../commons/APIUtils", (Object)"toBackend"));
     }
 
     @Override
@@ -36,20 +36,15 @@ public class ViewAPI extends SourceImpl implements ClassComponent {
     
     public static class APICallMethod extends InstanceMethod {
 
-        private final String endpointPlaceholder;
-
         public APICallMethod(String name, String[] paramNames,
-                             String endpointPlaceholder, boolean hasBody) {
-            super(name, actualParams(paramNames, hasBody));
-            this.endpointPlaceholder = endpointPlaceholder;
+                             String destination, boolean hasBody) {
+            super(name, actualParams(paramNames, destination, hasBody));
         }
 
         @Override
         public SourceSegment getBody() {
-            String paramStr = String.join(", ", getParamNames());
-            return new StringBasedSourceSegment(
-                String.format("toBackend.makeRequest(%s, %s);",
-                    "\"" + endpointPlaceholder + "\"", paramStr));
+            return new MethodCall(
+                "makeRequest", "toBackend", (Object[]) getParamNames());
         }
 
         @Override
@@ -57,9 +52,16 @@ public class ViewAPI extends SourceImpl implements ClassComponent {
             return this;
         }
 
-        private static String[] actualParams(String[] params, boolean hasBody) {
-            if (hasBody) return paramsWithSuccessHandling(paramsWithBody(params));
-            return paramsWithSuccessHandling(params);
+        private static String[] actualParams(String[] params, String destination, boolean hasBody) {
+            String[] newParams;
+            if (hasBody) newParams = paramsWithSuccessHandling(paramsWithBody(params));
+            else newParams = paramsWithSuccessHandling(params);
+            List<String> newParamList = new LinkedList<>();
+            newParamList.add("\"" + destination + "\"");
+            for (String param : newParams) {
+                newParamList.add(param);
+            } 
+            return newParamList.toArray(new String[newParamList.size()]);
         }
 
         private static String[] paramsWithSuccessHandling(String[] originalParams) {

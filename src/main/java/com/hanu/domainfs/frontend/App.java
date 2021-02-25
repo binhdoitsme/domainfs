@@ -25,13 +25,19 @@ public final class App {
 
         final Map<String, Object> initialStates = new TreeMap<>();
         initialStates.put("show", false);
-        initialStates.put("name", "");
-        initialStates.put("dob", "");
+        initialStates.put("name", "\"\"");
+        initialStates.put("dob", "\"\"");
+        final Map<String, Object> submittingStates = new TreeMap<>();
+        for (String key : initialStates.keySet()) {
+            submittingStates.put(key, "this.state." + key);
+        }
         // ViewClass viewCreateClass;
         ViewLayout modal = (ViewLayout) ViewComponentGenerator.generate("modal", Map.of(), "Title");
         ViewClass viewCreateClass = new ViewCreate("StudentCreate", "react-bootstrap",
             modal, initialStates, List.of(
-                new StateResetMethod(initialStates)
+                new StateResetMethod(initialStates),
+                new DefaultInstanceMethod("getSubmitBody", new String[] {}, 
+                    new ReturnStatement(new ObjectRep(submittingStates)))
             ));
         viewCreateClass.add(label);
         viewCreateClass.add(input);
@@ -39,17 +45,17 @@ public final class App {
 
 
 
-        // SourceSegment getById = new APICallMethod("getById",
-        //     new String[] { "id" }, "/students/{id}", false);
-        // SourceSegment create = new APICallMethod("create",
-        //     new String[] { }, "/students", true);
-        // SourceSegment updateById = new APICallMethod("updateById",
-        //     new String[] { "id" }, "/students", true);
-        // SourceSegment getByPage = new APICallMethod("getByPage", 
-        //     new String[] { "page" }, "/students?page={page}", false);
-        // ViewAPI viewAPI = new ViewAPI("StudentAPI", 
-        //     List.of(getById, create, updateById, getByPage));
-        // System.out.println(viewAPI.toSourceCode());
+        SourceSegment getById = new APICallMethod("getById",
+            new String[] { "id" }, "/students/{id}", false);
+        SourceSegment create = new APICallMethod("create",
+            new String[] { }, "/students", true);
+        SourceSegment updateById = new APICallMethod("updateById",
+            new String[] { "id" }, "/students", true);
+        SourceSegment getByPage = new APICallMethod("getByPage", 
+            new String[] { "page" }, "/students?page={page}", false);
+        ViewAPI viewAPI = new ViewAPI("StudentAPI", 
+            List.of(getById, create, updateById, getByPage));
+        System.out.println(viewAPI.toSourceCode());
         
     }
 }

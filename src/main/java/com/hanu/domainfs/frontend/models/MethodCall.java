@@ -2,26 +2,28 @@ package com.hanu.domainfs.frontend.models;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Collectors;
 
 class MethodCall implements SourceSegment, ImplementationStrategy {
     private String methodName;
-    private List<String> arguments;
+    private String callee;
+    private List<ObjectRep> arguments;
 
-    public MethodCall(String methodName, Object... arguments) {
+    public MethodCall(String methodName, String callee, Object... arguments) {
         this.methodName = methodName;
-        this.arguments = argumentsToString(arguments);
+        this.callee = callee;
+        this.arguments = argumentsToRep(arguments);
     }
 
     @Override
     public String implement(SourceSegment src) {
         MethodCall methodCall = (MethodCall) src;
         final StringBuilder result = new StringBuilder();
-        result.append(methodCall.methodName)
+        result.append(methodCall.callee).append(".")
+            .append(methodCall.methodName)
             .append("(")
-            .append(String.join(", ", methodCall.arguments))
+            .append(String.join(", ", methodCall.arguments.stream()
+                .map(arg -> arg.toSourceCode()).collect(Collectors.toList())))
             .append(");");
         return result.toString();
     }
@@ -31,24 +33,19 @@ class MethodCall implements SourceSegment, ImplementationStrategy {
         return this;
     }
     
-    private static List<String> argumentsToString(Object[] arguments) {
-        List<String> list = new LinkedList<>();
+    private static List<ObjectRep> argumentsToRep(Object[] arguments) {
+        List<ObjectRep> list = new LinkedList<>();
         for (Object arg : arguments) {
-            if (arg == null) {
-                list.add("null");
-            } else if (arg instanceof String || arg instanceof Byte 
-                    || arg instanceof Short || arg instanceof Boolean
-                    || arg instanceof Integer || arg instanceof Long
-                    || arg instanceof Float || arg instanceof Double) {
-                list.add(arg.toString());
-            } else {
-                try {
-                    list.add(new ObjectMapper().writeValueAsString(arg));
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            list.add(new ObjectRep(arg));
         }
         return list;
     }
+}
+
+final class SelfMethodCall extends MethodCall {
+
+    public SelfMethodCall(String methodName, Object... arguments) {
+        super(methodName, "this", arguments);
+    }
+    
 }

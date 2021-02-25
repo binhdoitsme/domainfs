@@ -7,7 +7,7 @@ import com.hanu.domainfs.frontend.models.ViewComponent;
 class FormGroup extends NestableViewComponent {
 
     public FormGroup(List<ViewComponent> innerComponents) {
-        super("ViewLib.FormGroup", null, null, innerComponents, false);
+        super("FormGroup", null, null, innerComponents, false);
     }
     
 }

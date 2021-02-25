@@ -32,6 +32,7 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     private List<SourceSegment> methods;
     private SourceSegment stateInitializer;
     private SourceSegment renderMethod;
+    private SourceSegment constructor;
 
     public AbstractViewClass(String name, SourceSegment stateInitializer,
                              List<SourceSegment> methods) {
@@ -39,10 +40,16 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
         this.methods = new LinkedList<>(methods);
         this.stateInitializer = stateInitializer;
         this.renderMethod = new RenderMethod(this);
+        this.constructor = new DefaultInstanceMethod(
+            "constructor", new String[] { "props" }, stateInitializer);
     }
 
     protected SourceSegment getRenderMethod() {
         return renderMethod;
+    }
+    
+    protected SourceSegment getConstructor() {
+        return constructor;
     }
 
     @Override
@@ -53,8 +60,12 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     @Override
     public List<SourceSegment> getMethods() {
         final SourceSegment renderMethod = getRenderMethod();
+        final SourceSegment constructor = getConstructor();
         if (!methods.contains(renderMethod) && renderMethod != null) {
             methods.add(renderMethod);
+        }
+        if (!methods.contains(constructor) && constructor != null) {
+            methods.add(0, constructor);
         }
         return methods;
     }
