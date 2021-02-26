@@ -10,6 +10,11 @@ interface ClassComponent extends Source {
     String getName();
 
     /**
+     * Name of the superclass of this.
+     */
+    String getSuperClass();
+
+    /**
      * Get import statements defined in this.
      */
     List<SourceSegment> getImportStatements();
@@ -31,13 +36,18 @@ interface ClassComponent extends Source {
             ClassComponent classComponent = (ClassComponent) src;
             StringBuilder result = new StringBuilder();
             // implement imports
-            for (SourceSegment importStatement : classComponent.getImportStatements()) {
-                result.append(importStatement.toSourceCode()).append("\n");
+            if (classComponent.getImportStatements() != null) {
+                for (SourceSegment importStatement : classComponent.getImportStatements()) {
+                    result.append(importStatement.toSourceCode()).append("\n");
+                }
+                result.append("\n");
             }
-            result.append("\n");
-
             // export default
-            result.append("export default class " + classComponent.getName() + " {\n");
+            result.append("export default class ")
+                .append(classComponent.getName())
+                .append(classComponent.getSuperClass() != null ? 
+                    " extends " + classComponent.getSuperClass() : "")
+                .append(" {\n");
 
             // implement methods
             for (SourceSegment method : classComponent.getMethods()) {

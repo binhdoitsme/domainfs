@@ -2,6 +2,7 @@ package com.hanu.domainfs.frontend.models;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represent a View (a page) in frontend application.
@@ -29,19 +30,23 @@ public interface ViewClass extends ClassComponent {
 
 abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     private String name;
+    private String superclass;
     private List<SourceSegment> methods;
     private SourceSegment stateInitializer;
     private SourceSegment renderMethod;
     private SourceSegment constructor;
 
-    public AbstractViewClass(String name, SourceSegment stateInitializer,
+    public AbstractViewClass(String name, String superclass, SourceSegment stateInitializer,
                              List<SourceSegment> methods) {
         this.name = name;
+        this.superclass = superclass;
         this.methods = new LinkedList<>(methods);
         this.stateInitializer = stateInitializer;
         this.renderMethod = new RenderMethod(this);
         this.constructor = new DefaultInstanceMethod(
-            "constructor", new String[] { "props" }, stateInitializer);
+            "constructor", new String[] { "props" }, 
+            new StatementList(new MethodCall("", "super", "props"),
+                toBindStatements(methods), stateInitializer));
     }
 
     protected SourceSegment getRenderMethod() {
@@ -50,6 +55,11 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     
     protected SourceSegment getConstructor() {
         return constructor;
+    }
+
+    @Override
+    public String getSuperClass() {
+        return superclass;
     }
 
     @Override
@@ -73,5 +83,13 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     @Override
     public SourceSegment getStateInitializer() {
         return stateInitializer;
+    }
+
+    private static SourceSegment toBindStatements(List<SourceSegment> methods) {
+        return new StatementList(methods.stream()
+                .map(f -> (InstanceMethod)f)
+                .map(f -> new MethodReference(f.getName(), "this"))
+                .map(mr -> new Assignment(mr, new MethodCall(mr, "bind", "this")))
+                .collect(Collectors.toList()));
     }
 }

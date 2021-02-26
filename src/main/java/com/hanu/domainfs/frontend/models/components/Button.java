@@ -9,6 +9,6 @@ class Button extends LeafViewComponent {
     }
 
     public Button(String content, Map<String, Object> attributes) {
-        super("Button", content, attributes, false);
+        super("Button", content, Map.copyOf(attributes), false);
     }
 }

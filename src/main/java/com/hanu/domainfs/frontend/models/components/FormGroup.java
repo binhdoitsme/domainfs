@@ -9,5 +9,9 @@ class FormGroup extends NestableViewComponent {
     public FormGroup(List<ViewComponent> innerComponents) {
         super("FormGroup", null, null, innerComponents, false);
     }
+
+    public FormGroup() {
+        this(null);
+    }
     
 }

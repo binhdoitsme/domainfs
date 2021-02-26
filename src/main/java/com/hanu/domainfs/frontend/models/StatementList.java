@@ -3,7 +3,7 @@ package com.hanu.domainfs.frontend.models;
 import java.util.LinkedList;
 import java.util.List;
 
-class StatementList implements SourceSegment, ImplementationStrategy {
+public class StatementList implements SourceSegment, ImplementationStrategy {
     private List<SourceSegment> statementList;
 
     public StatementList(SourceSegment... statements) {
@@ -11,6 +11,10 @@ class StatementList implements SourceSegment, ImplementationStrategy {
         for (SourceSegment statement : statements) {
             this.statementList.add(statement);
         }
+    }
+
+    public StatementList(List<SourceSegment> statements) {
+        this.statementList = new LinkedList<>(statements);
     }
 
     @Override

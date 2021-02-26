@@ -1,6 +1,6 @@
 package com.hanu.domainfs.frontend.models;
 
-class ImportStatement implements SourceSegment, ImplementationStrategy {
+public class ImportStatement implements SourceSegment, ImplementationStrategy {
     private final String path;
     private final String defaultAlias;
     private final String[] components;
@@ -27,7 +27,7 @@ class ImportStatement implements SourceSegment, ImplementationStrategy {
         result.append("{ ")
             .append(String.join(", ", components))
             .append(" }");
-        result.append(" from ").append("\"").append(path).append("\"");
+        result.append(" from ").append("\"").append(path).append("\"").append(";");
         return result.toString();
     }
 

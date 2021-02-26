@@ -10,5 +10,9 @@ class Form extends NestableViewComponent {
     public Form(Map<String, Object> attributes, List<ViewComponent> innerComponents) {
         super("Form", attributes, innerComponents);
     }
+
+    public Form() {
+        this(null, null);
+    }
     
 }

@@ -24,6 +24,11 @@ public class ViewAPI extends SourceImpl implements ClassComponent {
     }
 
     @Override
+    public String getSuperClass() {
+        return null;
+    }
+
+    @Override
     public List<SourceSegment> getImportStatements() {
         return List.of(
             new ImportStatement("../commons/APIUtils", (Object)"toBackend"));

@@ -2,42 +2,28 @@ package com.hanu.domainfs.frontend.models;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+
+import com.hanu.domainfs.frontend.models.components.ViewComponentGenerator;
 
 public class ViewCreate extends AbstractViewClass {
-    private String viewLib;
-    private final ViewLayout defaultLayout;
+    private List<SourceSegment> imports;
 
-    public ViewCreate(String name, String viewLib, 
-                      ViewLayout defaultLayout,
+    public ViewCreate(String name, String superclass, 
                       Map<String, Object> initialStates,
-                      List<SourceSegment> methods) {
-        super(name, new StateInitializer(initialStates), methods);
-        this.viewLib = viewLib;
-        this.defaultLayout = defaultLayout;
+                      List<SourceSegment> methods,
+                      List<SourceSegment> imports) {
+        super(name, superclass, new StateInitializer(initialStates), methods);
+        this.imports = imports;
     }
 
     @Override
     public List<SourceSegment> getImportStatements() {
-        final Set<String> definedTagNames = new TreeSet<>();
-        ViewComponent.traverseWithSideEffects(getLayout(), 
-            vc -> {
-                String tagName = vc.tagName();
-                if (tagName.contains(".")) 
-                    definedTagNames.add(tagName.split("\\.")[0]);
-                else definedTagNames.add(tagName);
-            });
-
-        return List.of(
-            new ImportStatement(this.viewLib, 
-                definedTagNames.toArray(new String[definedTagNames.size()]))
-        );
+        return this.imports;
     }
 
     @Override
     public ViewLayout getLayout() {
-        return defaultLayout;
+        return ViewComponentGenerator.emptyRoot;
     }
 
     @Override
