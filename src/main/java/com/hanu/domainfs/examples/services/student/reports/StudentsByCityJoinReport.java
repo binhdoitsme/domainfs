@@ -1,10 +1,10 @@
-package com.hanu.domainfs.ws.examples.services.student.reports;
+package com.hanu.domainfs.examples.services.student.reports;
 
 import java.util.Collection;
 import java.util.Map;
 
-import com.hanu.domainfs.ws.examples.services.student.model.City;
-import com.hanu.domainfs.ws.examples.services.student.model.Student;
+import com.hanu.domainfs.examples.services.student.model.City;
+import com.hanu.domainfs.examples.services.student.model.Student;
 
 import domainapp.basics.core.dodm.dsm.DSMBasic;
 import domainapp.basics.core.dodm.qrm.QRM;

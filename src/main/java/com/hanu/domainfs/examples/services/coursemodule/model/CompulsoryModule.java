@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.services.coursemodule.model;
+package com.hanu.domainfs.examples.services.coursemodule.model;
 
 import domainapp.basics.exceptions.ConstraintViolationException;
 import domainapp.basics.model.meta.AttrRef;

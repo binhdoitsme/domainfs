@@ -1,12 +1,12 @@
 package com.hanu.domainfs;
 
-import com.hanu.domainfs.ws.examples.services.coursemodule.model.CompulsoryModule;
-import com.hanu.domainfs.ws.examples.services.coursemodule.model.CourseModule;
-import com.hanu.domainfs.ws.examples.services.coursemodule.model.ElectiveModule;
-import com.hanu.domainfs.ws.examples.services.enrolment.model.Enrolment;
-import com.hanu.domainfs.ws.examples.services.sclass.model.SClass;
-import com.hanu.domainfs.ws.examples.services.student.model.City;
-import com.hanu.domainfs.ws.examples.services.student.model.Student;
+import com.hanu.domainfs.examples.services.coursemodule.model.CompulsoryModule;
+import com.hanu.domainfs.examples.services.coursemodule.model.CourseModule;
+import com.hanu.domainfs.examples.services.coursemodule.model.ElectiveModule;
+import com.hanu.domainfs.examples.services.enrolment.model.Enrolment;
+import com.hanu.domainfs.examples.services.sclass.model.SClass;
+import com.hanu.domainfs.examples.services.student.model.City;
+import com.hanu.domainfs.examples.services.student.model.Student;
 import com.hanu.domainfs.ws.generators.WebServiceGenerator;
 import domainapp.basics.exceptions.DataSourceException;
 import domainapp.basics.exceptions.NotFoundException;

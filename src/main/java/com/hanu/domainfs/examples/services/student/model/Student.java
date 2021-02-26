@@ -1,13 +1,13 @@
-package com.hanu.domainfs.ws.examples.services.student.model;
+package com.hanu.domainfs.examples.services.student.model;
 
 import java.util.*;
 
-import com.hanu.domainfs.ws.examples.exceptions.DExCode;
-import com.hanu.domainfs.ws.examples.services.enrolment.model.Enrolment;
-import com.hanu.domainfs.ws.examples.services.sclass.model.SClass;
-import com.hanu.domainfs.ws.examples.services.student.reports.StudentsByCityJoinReport;
-import com.hanu.domainfs.ws.examples.services.student.reports.StudentsByNameReport;
-import com.hanu.domainfs.ws.examples.utils.DToolkit;
+import com.hanu.domainfs.examples.exceptions.DExCode;
+import com.hanu.domainfs.examples.services.enrolment.model.Enrolment;
+import com.hanu.domainfs.examples.services.sclass.model.SClass;
+import com.hanu.domainfs.examples.services.student.reports.StudentsByCityJoinReport;
+import com.hanu.domainfs.examples.services.student.reports.StudentsByNameReport;
+import com.hanu.domainfs.examples.utils.DToolkit;
 
 import domainapp.basics.exceptions.ConstraintViolationException;
 import domainapp.basics.model.meta.AttrRef;

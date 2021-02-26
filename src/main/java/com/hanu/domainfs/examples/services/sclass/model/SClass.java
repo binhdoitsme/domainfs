@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.services.sclass.model;
+package com.hanu.domainfs.examples.services.sclass.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,7 +15,7 @@ import domainapp.basics.model.meta.DClass;
 import domainapp.basics.model.meta.DOpt;
 import domainapp.basics.model.meta.Select;
 import domainapp.basics.util.Tuple;
-import com.hanu.domainfs.ws.examples.services.student.model.Student;
+import com.hanu.domainfs.examples.services.student.model.Student;
 
 /**
  * Represents a student class.

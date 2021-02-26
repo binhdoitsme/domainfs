@@ -1,7 +1,7 @@
-package com.hanu.domainfs.ws.examples.services.enrolment.model;
+package com.hanu.domainfs.examples.services.enrolment.model;
 
-import com.hanu.domainfs.ws.examples.services.coursemodule.model.CourseModule;
-import com.hanu.domainfs.ws.examples.services.student.model.Student;
+import com.hanu.domainfs.examples.services.coursemodule.model.CourseModule;
+import com.hanu.domainfs.examples.services.student.model.Student;
 
 import domainapp.basics.exceptions.ConstraintViolationException;
 import domainapp.basics.model.meta.AttrRef;

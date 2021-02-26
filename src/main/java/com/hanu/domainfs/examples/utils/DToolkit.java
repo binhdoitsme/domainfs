@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.utils;
+package com.hanu.domainfs.examples.utils;
 
 import java.util.Calendar;
 import java.util.Date;

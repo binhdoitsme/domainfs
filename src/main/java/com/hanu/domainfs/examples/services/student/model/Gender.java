@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.services.student.model;
+package com.hanu.domainfs.examples.services.student.model;
 
 import domainapp.basics.model.meta.DAttr;
 import domainapp.basics.model.meta.DAttr.Type;

@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.exceptions;
+package com.hanu.domainfs.examples.exceptions;
 
 import java.text.MessageFormat;
 import domainapp.basics.util.InfoCode;

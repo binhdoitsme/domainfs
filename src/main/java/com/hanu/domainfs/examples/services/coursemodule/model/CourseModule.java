@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.services.coursemodule.model;
+package com.hanu.domainfs.examples.services.coursemodule.model;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.examples.services.coursemodule.model;
+package com.hanu.domainfs.examples.services.coursemodule.model;
 import domainapp.basics.model.meta.AttrRef;
 import domainapp.basics.model.meta.DAttr;
 import domainapp.basics.model.meta.DAttr.Type;
