@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.hanu.domainfs.utils.IdentifierUtils;
 import com.hanu.domainfs.ws.generators.controllers.NestedRestfulController;
 import com.hanu.domainfs.ws.generators.controllers.RestfulController;
 import com.hanu.domainfs.ws.generators.controllers.RestfulWithInheritanceController;
@@ -90,13 +91,13 @@ class WebControllerGenerator {
         try {
             String typeName = type.getName();
             if (!generatedCrudClasses.containsKey(typeName)) {
-                Class<ID> idType = (Class<ID>)GenericTypeUtils.getWrapperClass(type.getDeclaredField("id").getType());
+                Class<ID> idType = (Class<ID>)GenericTypeUtils.getWrapperClass(IdentifierUtils.getIdField(type).getType());
                 generatedCrudClasses.put(typeName,
                     generateRestfulController(type, idType));
             }
             return (Class<RestfulController<T, ID>>) generatedCrudClasses.get(typeName);
         } catch (IllegalAccessException | IOException
-                | NoSuchMethodException | NoSuchFieldException ex) {
+                | NoSuchMethodException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -177,7 +178,7 @@ class WebControllerGenerator {
         final String pkg = outerType.getPackage().getName().replace(".model", "");
         final String name = NamingUtils.classNameFrom(pkg, nestedRestCtrlClass, "Controller", outerType, innerType);
         final Class<?> outerIdType = GenericTypeUtils.getWrapperClass(
-            outerType.getDeclaredField("id").getType());
+            IdentifierUtils.getIdField(outerType).getType());
         Builder<NestedRestfulController> builder =
             generateControllerType(nestedRestCtrlImplClass, name, endpoint,
                 outerType, outerIdType, innerType);
@@ -279,7 +280,7 @@ class WebControllerGenerator {
         final String suffix = "Service";
         final String fieldName = domClass.getSimpleName().toLowerCase() + suffix;
         final Class<?> idType = GenericTypeUtils.getWrapperClass(
-            domClass.getDeclaredField("id").getType());
+            IdentifierUtils.getIdField(domClass).getType());
         Generic serviceType;
         if (generatedClassFields.containsKey(fieldName)) {
             serviceType = generatedClassFields.get(fieldName);
