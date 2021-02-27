@@ -13,4 +13,4 @@ logging:
     org.hibernate: "error"
 
 basePackage:
-  com.hanu.domainfs.ws
+  com.hanu.domainfs.examples
