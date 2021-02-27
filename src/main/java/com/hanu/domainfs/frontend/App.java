@@ -1,5 +1,6 @@
 package com.hanu.domainfs.frontend;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -39,11 +40,21 @@ public final class App {
             inputType = InputType.Type.NUMBER;
             inputAttrs.put("min", attrInfo.min());
             inputAttrs.put("max", attrInfo.max());
+        } else if (fieldType == Double.TYPE || fieldType == Double.class
+                || fieldType == Float.TYPE || fieldType == Float.class) {
+            inputType = InputType.Type.NUMBER;
+            inputAttrs.put("min", attrInfo.min());
+            inputAttrs.put("max", attrInfo.max());
+            inputAttrs.put("step", 0.01); // Default hardcoding step value
         } else if (fieldType == Date.class) {
             inputType = InputType.Type.DATE;
+        } else if (fieldType == Boolean.class || fieldType == Boolean.TYPE) {
+            // not yet supported
+            return null;
         } else {
             return null;
         }
+        inputAttrs.put("value", "{" + field.getName() + "}");
 
         final ViewComponent input = ViewComponentGenerator.generate("input", inputAttrs, inputType);
 
@@ -52,15 +63,33 @@ public final class App {
         formGroup.add(input);
         return formGroup;
     }
+
+    static Map<String, Object> initialStatesFrom(Field[] fields) {
+        final Map<String, Object> initialStates = new LinkedHashMap<>();
+        for (Field field : fields) {
+            if (Modifier.isStatic(field.getModifiers())) continue;
+            Class<?> fieldType = field.getType();
+            if (fieldType == String.class) {
+                initialStates.put(field.getName(), "");
+            } else if (Number.class.isAssignableFrom(fieldType)) {
+                initialStates.put(field.getName(), 0);
+            } else if (fieldType == Boolean.TYPE || fieldType == Boolean.class) {
+                initialStates.put(field.getName(), false);
+            } else {
+                initialStates.put(field.getName(), "undefined");
+            }
+        }
+        return initialStates;
+    }
+
     public static void main(String[] args) {
         final Map<String, Object> attrs = new HashMap<>();
         attrs.put("key", "id");
         attrs.put("onClick", "{this.handleShow}");
         ViewComponent button = ViewComponentGenerator.generate("button", attrs, "+ Create");
-        
-        final Map<String, Object> initialStates = new TreeMap<>();
-        initialStates.put("name", "\"\"");
-        initialStates.put("dob", "\"\"");
+
+        Field[] declaredFields = Student.class.getDeclaredFields();
+        final Map<String, Object> initialStates = initialStatesFrom(declaredFields);
         // modal show/hide support
         initialStates.put("modalShowing", false);
         final Map<String, Object> submittingStates = new TreeMap<>();
@@ -115,7 +144,6 @@ public final class App {
         );
         ViewLayout form = (ViewLayout) ViewComponentGenerator.generate("form", null);
         
-        Field[] declaredFields = Student.class.getDeclaredFields();
         for (Field declaredField : declaredFields) {
             final ViewComponent formGroup = generateInputFormGroup(declaredField);
             if (formGroup == null) continue;
@@ -129,17 +157,17 @@ public final class App {
 
 
 
-        SourceSegment getById = new APICallMethod("getById",
-            new String[] { "id" }, "/students/{id}", false);
-        SourceSegment create = new APICallMethod("create",
-            new String[] { }, "/students", true);
-        SourceSegment updateById = new APICallMethod("updateById",
-            new String[] { "id" }, "/students", true);
-        SourceSegment getByPage = new APICallMethod("getByPage", 
-            new String[] { "page" }, "/students?page={page}", false);
-        ViewAPI viewAPI = new ViewAPI("StudentAPI", 
-            List.of(getById, create, updateById, getByPage));
-        System.out.println(viewAPI.toSourceCode());
+        // SourceSegment getById = new APICallMethod("getById",
+        //     new String[] { "id" }, "/students/{id}", false);
+        // SourceSegment create = new APICallMethod("create",
+        //     new String[] { }, "/students", true);
+        // SourceSegment updateById = new APICallMethod("updateById",
+        //     new String[] { "id" }, "/students", true);
+        // SourceSegment getByPage = new APICallMethod("getByPage", 
+        //     new String[] { "page" }, "/students?page={page}", false);
+        // ViewAPI viewAPI = new ViewAPI("StudentAPI", 
+        //     List.of(getById, create, updateById, getByPage));
+        // System.out.println(viewAPI.toSourceCode());
         
     }
 }
