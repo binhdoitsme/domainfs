@@ -24,20 +24,18 @@ public interface Source extends SourceSegment {
 abstract class SourceImpl implements Source {
     private BufferedWriter writer;
 
-    public SourceImpl() {
-        if (getTarget() != null) try {
+    @Override
+    public String toSourceCode() {
+        String src = getImplementationStrategy().implement(this);
+        if (getTarget() != null && writer == null) try {
             writer = new BufferedWriter(new FileWriter(getTarget()));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    @Override
-    public String toSourceCode() {
-        String src = getImplementationStrategy().implement(this);
         if (writer != null) try {
             writer.write(src);
             writer.flush();
+            System.out.println("wrote to " + getTarget());
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

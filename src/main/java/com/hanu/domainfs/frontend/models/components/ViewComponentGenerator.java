@@ -18,7 +18,13 @@ public final class ViewComponentGenerator {
             case "button":
                 return new Button((String) extras[0], attributes);
             case "input":
-                return new FormControl((InputType)extras[0], attributes);
+                InputType inputType = (InputType)extras[0];
+                if (inputType == InputType.Type.SELECT_OPTION) return generate("select", attributes, extras);
+                return new FormControl(inputType, attributes);
+            case "select":
+                System.out.println(extras[1]);
+                Object[] options = ((Class)extras[1]).getEnumConstants();
+                return new FormSelect(attributes, options);
             case "label":
                 return new FormLabel((String) extras[0], attributes);
             case "modal":

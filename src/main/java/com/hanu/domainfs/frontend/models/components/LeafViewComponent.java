@@ -26,7 +26,7 @@ abstract class LeafViewComponent implements ViewComponent {
         if (content == null) this.content = "";
         else this.content = content;
         if (attributes == null) this.attributes = new HashMap<>();
-        else this.attributes = attributes;
+        else this.attributes = new HashMap<>(attributes);
     }
 
     protected void addAttribute(String key, Object value) {

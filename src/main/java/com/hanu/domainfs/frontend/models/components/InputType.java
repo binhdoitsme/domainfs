@@ -45,6 +45,14 @@ public interface InputType {
         COLOR {
             @Override
             public String toTypeString() { return "color"; }
+        },
+        CHECKBOX {
+            @Override
+            public String toTypeString() { return "check"; }
+        },
+        SELECT_OPTION {
+            @Override
+            public String toTypeString() { return "select"; }
         }
     }
 }

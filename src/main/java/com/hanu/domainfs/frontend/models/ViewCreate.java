@@ -25,10 +25,4 @@ public class ViewCreate extends AbstractViewClass {
     public ViewLayout getLayout() {
         return ViewComponentGenerator.emptyRoot;
     }
-
-    @Override
-    public String getTarget() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 }

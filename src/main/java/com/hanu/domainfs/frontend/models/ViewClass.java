@@ -36,6 +36,8 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     private SourceSegment renderMethod;
     private SourceSegment constructor;
 
+    private String target;
+
     public AbstractViewClass(String name, String superclass, SourceSegment stateInitializer,
                              List<SourceSegment> methods) {
         this.name = name;
@@ -83,6 +85,16 @@ abstract class AbstractViewClass extends SourceImpl implements ViewClass {
     @Override
     public SourceSegment getStateInitializer() {
         return stateInitializer;
+    }
+
+    @Override
+    public String getTarget() {
+        return this.target;
+    }
+
+    @Override
+    public void setTarget(String target) {
+        this.target = target;
     }
 
     private static SourceSegment toBindStatements(List<SourceSegment> methods) {
