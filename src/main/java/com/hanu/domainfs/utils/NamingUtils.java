@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.utils;
+package com.hanu.domainfs.utils;
 
 import static java.lang.Character.toLowerCase;
 

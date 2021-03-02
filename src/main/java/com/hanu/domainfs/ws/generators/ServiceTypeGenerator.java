@@ -13,8 +13,8 @@ import com.hanu.domainfs.ws.generators.services.SimpleDomServiceAdapter;
 import com.hanu.domainfs.ws.generators.services.InheritedDomServiceAdapter;
 import com.hanu.domainfs.ws.generators.services.CrudService;
 
-import com.hanu.domainfs.ws.utils.InheritanceUtils;
-import com.hanu.domainfs.ws.utils.NamingUtils;
+import com.hanu.domainfs.utils.InheritanceUtils;
+import com.hanu.domainfs.utils.NamingUtils;
 
 import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,9 +12,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.hanu.domainfs.ws.utils.InheritanceUtils;
-import com.hanu.domainfs.ws.utils.NamingUtils;
-import com.hanu.domainfs.ws.utils.PackageUtils;
+import com.hanu.domainfs.utils.InheritanceUtils;
+import com.hanu.domainfs.utils.NamingUtils;
+import com.hanu.domainfs.utils.PackageUtils;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;

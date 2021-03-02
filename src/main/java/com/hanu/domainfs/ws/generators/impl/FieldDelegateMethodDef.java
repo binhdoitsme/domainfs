@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.module.paranamer.ParanamerModule;
 import com.hanu.domainfs.ws.generators.controllers.RestfulController;
-import com.hanu.domainfs.ws.utils.PackageUtils;
+import com.hanu.domainfs.utils.PackageUtils;
 
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.Implementation;

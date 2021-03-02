@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.utils;
+package com.hanu.domainfs.utils;
 
 import java.util.stream.Stream;
 

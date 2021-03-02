@@ -1,4 +1,4 @@
-package com.hanu.domainfs.ws.utils;
+package com.hanu.domainfs.utils;
 
 import java.io.IOException;
 import java.util.HashMap;

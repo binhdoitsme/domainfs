@@ -22,7 +22,7 @@ import com.hanu.domainfs.ws.generators.services.InheritedCrudService;
 import com.hanu.domainfs.ws.svcdesc.ServiceController;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
 import com.hanu.domainfs.ws.utils.GenericTypeUtils;
-import com.hanu.domainfs.ws.utils.NamingUtils;
+import com.hanu.domainfs.utils.NamingUtils;
 
 import org.modeshape.common.text.Inflector;
 import org.springframework.beans.factory.annotation.Autowired;

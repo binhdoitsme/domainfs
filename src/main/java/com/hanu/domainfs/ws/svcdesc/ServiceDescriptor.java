@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.hanu.domainfs.utils.ClassUtils;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
-import com.hanu.domainfs.ws.utils.ClassUtils;
 
 /**
  * The utility class looking into Web service classes and returning their

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
-import com.hanu.domainfs.ws.utils.InheritanceUtils;
+import com.hanu.domainfs.utils.InheritanceUtils;
 
 @SuppressWarnings({ "rawtypes" })
 public class WebServiceGenerator {
