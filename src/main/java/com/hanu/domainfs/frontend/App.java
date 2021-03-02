@@ -67,7 +67,7 @@ public final class App {
             if (Double.isFinite(attrInfo.max())) inputAttrs.put("max", attrInfo.max());
         } else if (fieldType == Double.TYPE || fieldType == Double.class
                 || fieldType == Float.TYPE || fieldType == Float.class) {
-            inputType = InputType.Type.NUMBER;
+            inputType = InputType.Type.DECIMAL;
             if (Double.isFinite(attrInfo.min())) inputAttrs.put("min", attrInfo.min());
             if (Double.isFinite(attrInfo.max())) inputAttrs.put("max", attrInfo.max());
             inputAttrs.put("step", 0.01); // Default hardcoding step value

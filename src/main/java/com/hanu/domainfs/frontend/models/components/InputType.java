@@ -17,6 +17,10 @@ public interface InputType {
         NUMBER {
             @Override
             public String toTypeString() { return "number"; }
+        }, 
+        DECIMAL {
+            @Override
+            public String toTypeString() { return "number"; }
         },
         DATE {
             @Override
