@@ -59,9 +59,14 @@ public class SimpleDomServiceAdapter<T> implements CrudService<T> {
 
     @Override
     public Page<T> getEntityListByPage(PagingModel pagingModel) {
+        Collection<T> entities = this.getAllEntities();
+        return paginate(entities, pagingModel);
+    }
+
+    protected Page<T> paginate(Collection<T> entities, PagingModel pagingModel) {
         final int pageNumber = pagingModel.getPage();
         final int itemPerPage = pagingModel.getCount();
-        Collection<T> entities = this.getAllEntities();
+
         if (entities == null || entities.isEmpty()) {
             return Page.empty();
         }
@@ -91,7 +96,7 @@ public class SimpleDomServiceAdapter<T> implements CrudService<T> {
                 IdentifierUtils.getIdField(getType()).get(entity))) return null;
             sw.updateObject(type, entity);
             return entity;
-        } catch (NotPossibleException | NotFoundException 
+        } catch (NotPossibleException | NotFoundException
                 | DataSourceException | IllegalArgumentException
                 | IllegalAccessException e) {
             throw new RuntimeException(e);

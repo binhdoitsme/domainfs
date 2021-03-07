@@ -64,19 +64,7 @@ public class InheritedDomServiceAdapter<T> extends SimpleDomServiceAdapter<T>
     @Override
     public Page<T> getEntityListByTypeAndPage(String type, PagingModel pagingModel) {
         Collection<T> entities = getEntityListByType(type);
-        final int pageNumber = pagingModel.getPage();
-        final int itemPerPage = pagingModel.getCount();
-        if (entities == null || entities.isEmpty()) {
-            return Page.empty();
-        }
-        final int size = entities.size();
-        final int skip = (pageNumber - 1) * itemPerPage;
-        if (skip > size) {
-            throw new NoSuchElementException("Not found: Page #" + pageNumber);
-        }
-        final int pageCount = size / itemPerPage + size % itemPerPage > 0 ? 1 : 0;
-        final Collection<T> pageContent = entities.stream().skip(skip).limit(itemPerPage).collect(Collectors.toList());
-        return new Page<>(pageNumber, pageCount, pageContent);
+        return paginate(entities, pagingModel);
     }
 
 }

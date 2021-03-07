@@ -1,4 +1,4 @@
-package com.hanu.domainfs;
+package com.hanu.domainfs.ws;
 
 import com.hanu.domainfs.examples.services.coursemodule.model.CompulsoryModule;
 import com.hanu.domainfs.examples.services.coursemodule.model.CourseModule;
@@ -22,13 +22,17 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
  *
  */
 @SpringBootApplication
-public class App {
+@ComponentScan(basePackages = {
+    "com.hanu.domainfs.examples",
+    "com.hanu.domainfs.ws"})
+public class SpringApp {
 
     // 1. initialise the model
     static final Class<?>[] model = {
@@ -61,11 +65,11 @@ public class App {
             }
             // populate the service registry
             final ServiceRegistry registry = ServiceRegistry.getInstance();
-            ApplicationContext ctx = SpringApplication.run(App.class, args);
+            ApplicationContext ctx = SpringApplication.run(SpringApp.class, args);
             ctx.getBeansOfType(CrudService.class).forEach((k, v) -> {
                 registry.put(k, v);
             });
-            
+
         });
         generator.generateWebService(model);
         System.out.println("------------");

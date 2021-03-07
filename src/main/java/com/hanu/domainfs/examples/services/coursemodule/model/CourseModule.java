@@ -97,6 +97,7 @@ public abstract class CourseModule {
 
   public void setSemester(int semester) {
     this.semester = semester;
+    if (code == null) this.code = nextCode(null, semester);
   }
 
   public void setCredits(int credits) {
