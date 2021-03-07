@@ -1,22 +1,24 @@
 package com.hanu.domainfs.ws.generators.services;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+import com.hanu.domainfs.utils.IdentifierUtils;
+import com.hanu.domainfs.ws.generators.models.Identifier;
 import com.hanu.domainfs.ws.generators.models.Page;
+import com.hanu.domainfs.ws.generators.models.PagingModel;
 
 import domainapp.basics.exceptions.DataSourceException;
 import domainapp.basics.exceptions.NotFoundException;
+import domainapp.basics.exceptions.NotPossibleException;
 import domainapp.basics.model.query.Expression.Op;
 import domainapp.softwareimpl.SoftwareImpl;
 
 @SuppressWarnings("unchecked")
-public class SimpleDomServiceAdapter<T, ID extends Serializable>
-        implements CrudService<T, ID> {
+public class SimpleDomServiceAdapter<T> implements CrudService<T> {
     protected final SoftwareImpl sw;
-    private Class<T> type;
+    protected Class<T> type;
 
     // autowired constructor
     protected SimpleDomServiceAdapter(SoftwareImpl sw) {
@@ -39,7 +41,7 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
     @Override
     public T createEntity(T entity) {
         try {
-            sw.addObject((Class<T>)entity.getClass(), entity);
+            sw.addObject((Class<T>) entity.getClass(), entity);
             return entity;
         } catch (DataSourceException e) {
             throw new RuntimeException(e);
@@ -47,17 +49,24 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
     }
 
     @Override
-    public T getEntityById(ID id) {
+    public T getEntityById(Identifier<?> id) {
         try {
-            return sw.retrieveObjectById(type, id);
+            return sw.retrieveObjectById(type, id.getId());
         } catch (NotFoundException | DataSourceException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public Page<T> getEntityListByPage(int pageNumber, int itemPerPage) {
+    public Page<T> getEntityListByPage(PagingModel pagingModel) {
         Collection<T> entities = this.getAllEntities();
+        return paginate(entities, pagingModel);
+    }
+
+    protected Page<T> paginate(Collection<T> entities, PagingModel pagingModel) {
+        final int pageNumber = pagingModel.getPage();
+        final int itemPerPage = pagingModel.getCount();
+
         if (entities == null || entities.isEmpty()) {
             return Page.empty();
         }
@@ -67,8 +76,7 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
             throw new NoSuchElementException("Not found: Page #" + pageNumber);
         }
         final int pageCount = size / itemPerPage + size % itemPerPage > 0 ? 1 : 0;
-        final Collection<T> pageContent = entities.stream().skip(skip)
-                    .limit(itemPerPage).collect(Collectors.toList());
+        final Collection<T> pageContent = entities.stream().skip(skip).limit(itemPerPage).collect(Collectors.toList());
         return new Page<>(pageNumber, pageCount, pageContent);
     }
 
@@ -82,15 +90,23 @@ public class SimpleDomServiceAdapter<T, ID extends Serializable>
     }
 
     @Override
-    public T updateEntity(T entity) {
-        // TODO Auto-generated method stub
-        return entity;
+    public T updateEntity(Identifier<?> id, T entity) {
+        try {
+            if (!id.getId().equals(
+                IdentifierUtils.getIdField(getType()).get(entity))) return null;
+            sw.updateObject(type, entity);
+            return entity;
+        } catch (NotPossibleException | NotFoundException
+                | DataSourceException | IllegalArgumentException
+                | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public void deleteEntityById(ID id) {
+    public void deleteEntityById(Identifier<?> id) {
         try {
-            T toDelete = sw.retrieveObjectById(type, id);
+            T toDelete = sw.retrieveObjectById(type, id.getId());
             sw.deleteObject(toDelete, type);
         } catch (DataSourceException e) {
             throw new RuntimeException(e);
