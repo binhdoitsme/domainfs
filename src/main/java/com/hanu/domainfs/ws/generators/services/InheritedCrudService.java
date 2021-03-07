@@ -1,12 +1,12 @@
 package com.hanu.domainfs.ws.generators.services;
 
-import java.io.Serializable;
 import java.util.Collection;
 
 import com.hanu.domainfs.ws.generators.models.Page;
+import com.hanu.domainfs.ws.generators.models.PagingModel;
 
-public interface InheritedCrudService<T, ID extends Serializable> 
-        extends CrudService<T, ID> {
+public interface InheritedCrudService<T> 
+        extends CrudService<T> {
     Collection<T> getEntityListByType(String type);
-    Page<T> getEntityListByTypeAndPage(String type, int page, int count);
+    Page<T> getEntityListByTypeAndPage(String type, PagingModel pagingModel);
 }

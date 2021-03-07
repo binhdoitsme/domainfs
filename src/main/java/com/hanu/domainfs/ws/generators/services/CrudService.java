@@ -1,15 +1,16 @@
 package com.hanu.domainfs.ws.generators.services;
 
-import java.io.Serializable;
 import java.util.Collection;
 
+import com.hanu.domainfs.ws.generators.models.Identifier;
 import com.hanu.domainfs.ws.generators.models.Page;
+import com.hanu.domainfs.ws.generators.models.PagingModel;
 
-public interface CrudService<T, ID extends Serializable> {
+public interface CrudService<T> {
     T createEntity(T entity);
-    T getEntityById(ID id);
-    Page<T> getEntityListByPage(int pageNumber, int itemPerPage);
+    T getEntityById(Identifier<?> id);
+    Page<T> getEntityListByPage(PagingModel pagingModel);
     Collection<T> getAllEntities();
-    T updateEntity(T entity);
-    void deleteEntityById(ID id);
+    T updateEntity(Identifier<?> id, T entity);
+    void deleteEntityById(Identifier<?> id);
 }

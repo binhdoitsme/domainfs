@@ -1,44 +1,43 @@
 package com.hanu.domainfs.ws.generators.controllers;
 
-import java.io.Serializable;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
+import com.hanu.domainfs.ws.generators.models.Identifier;
 import com.hanu.domainfs.ws.generators.services.CrudService;
 
 import domainapp.basics.model.meta.DOpt;
 
-@SuppressWarnings("unchecked")
-public class SimpleNestedRestfulController<T1, ID1 extends Serializable, T2>
-        implements NestedRestfulController<T1, ID1, T2> {
+@SuppressWarnings({"unchecked", "rawtypes"})
+public abstract class DefaultNestedRestfulController<T1, T2>
+        implements NestedRestfulController<T1, T2> {
 
-    private final Class<?> clazz = getClass();
-    protected Class<T2> innerType;
-    protected Class<T1> outerType;
+    protected Class<T2> innerType = (Class) ((ParameterizedType) getClass()
+        .getGenericSuperclass()).getActualTypeArguments()[1];
+    protected Class<T1> outerType = (Class) ((ParameterizedType) getClass()
+        .getGenericSuperclass()).getActualTypeArguments()[0];
+
+    protected <X> CrudService<X> getServiceOfGenericType(String clsName) {
+        return ServiceRegistry.getInstance().get(clsName);
+    }
 
     @Override
-    public T2 createInner(ID1 outerId, Map<String, String> requestBody) {
-        // reflection-based solution -- needs HEAVY optimization
-        Method getEntityById = getMethodByName(CrudService.class, "getEntityById", Serializable.class);
+    public T2 createInner(Identifier<?> outerId, Map<String, Object> requestBody) {
 
         final Map<String, Object> inputs = new HashMap<>();
         for (String key : requestBody.keySet()) {
             String type = key.replace("Id", "");
-            String serviceField = type + "Service";
-            try {
-                Object value = getEntityById.invoke(clazz.getDeclaredField(serviceField).get(this),
-                        requestBody.get(key));
-                inputs.put(type, value);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-                    | NoSuchFieldException | SecurityException ex) {
-                throw new RuntimeException(ex);
-            }
+            Object value = getServiceOfGenericType(type)
+                    .getEntityById(new Identifier<>(requestBody.get(key)));
+            if (value == null) throw new RuntimeException();
+            inputs.put(type, value);
         }
 
         Constructor<?> requiredConstructor = getRequiredConstructor(innerType);
@@ -47,27 +46,18 @@ public class SimpleNestedRestfulController<T1, ID1 extends Serializable, T2>
         Object[] arguments = new Object[parameterTypes.length];
         final AtomicInteger counter = new AtomicInteger();
         for (Class<?> paramType : parameterTypes) {
-            arguments[counter.get()] = inputs.get(paramType.getSimpleName().toLowerCase());
+            String paramTypeName = paramType.getSimpleName();
+            arguments[counter.get()] = inputs.get(Character.toLowerCase(paramTypeName.charAt(0)) + paramTypeName.substring(1));
             counter.incrementAndGet();
         }
 
         try {
             T2 instance = (T2) requiredConstructor.newInstance(arguments);
-            return getServiceOfGenericType(innerType).createEntity(instance);
+            CrudService<T2> svc = getServiceOfGenericType(innerType.getCanonicalName());
+            return svc.createEntity(instance);
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                 | InvocationTargetException ex) {
             throw new RuntimeException(ex);
-        }
-    }
-
-    private <U, ID extends Serializable> CrudService<U, ID> getServiceOfGenericType(Class<U> type) {
-        String serviceFieldName = type.getSimpleName().toLowerCase().concat("Service");
-        try {
-            Field serviceField = getClass().getDeclaredField(serviceFieldName);
-            serviceField.setAccessible(true);
-            return (CrudService<U, ID>) serviceField.get(this);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -97,15 +87,15 @@ public class SimpleNestedRestfulController<T1, ID1 extends Serializable, T2>
     }
 
     @Override
-    public Collection<T2> getInnerListByOuterId(ID1 outerId) {
+    public Collection<T2> getInnerListByOuterId(Identifier<?> outerId) {
         // reflection-based solution -- needs HEAVY optimization
-
-        T1 outerById = getServiceOfGenericType(outerType).getEntityById(outerId);
+        CrudService<T1> svc = getServiceOfGenericType(outerType.getCanonicalName());
+        T1 outerById = svc.getEntityById(outerId);
         String getInnerMethodName = "get" + innerType.getSimpleName() + "s";
         Method getInnersFromOuter = getMethodByName(outerType, getInnerMethodName);
         try {
             return (Collection<T2>) getInnersFromOuter.invoke(outerById);
-        } catch (IllegalAccessException | IllegalArgumentException 
+        } catch (IllegalAccessException | IllegalArgumentException
                 | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
