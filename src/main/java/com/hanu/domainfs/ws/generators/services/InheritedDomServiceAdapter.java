@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 import com.hanu.domainfs.ws.generators.models.Page;
 import com.hanu.domainfs.ws.generators.models.PagingModel;

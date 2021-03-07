@@ -45,6 +45,14 @@ public class SpringApp {
         SClass.class,
     };
 
+    static {
+        try {
+            Class.forName("com.hanu.domainfs.DummyApp");
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     private static SoftwareImpl sw;
 
     /**

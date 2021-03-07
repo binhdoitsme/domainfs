@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import com.hanu.domainfs.ws.generators.models.Identifier;
 import com.hanu.domainfs.ws.generators.services.CrudService;
@@ -54,7 +53,10 @@ public abstract class DefaultNestedRestfulController<T1, T2>
         try {
             T2 instance = (T2) requiredConstructor.newInstance(arguments);
             CrudService<T2> svc = getServiceOfGenericType(innerType.getCanonicalName());
-            return svc.createEntity(instance);
+            T1 outer = (T1) getServiceOfGenericType(outerType.getCanonicalName()).getEntityById(outerId);
+            T2 created = svc.createEntity(instance);
+            getLinkAdder(outerType, innerType).invoke(outer, created);
+            return created;
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                 | InvocationTargetException ex) {
             throw new RuntimeException(ex);
@@ -67,6 +69,17 @@ public abstract class DefaultNestedRestfulController<T1, T2>
         } catch (NoSuchMethodException | SecurityException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private static Method getLinkAdder(Class<?> cls, Class<?> toAdd) {
+        for (Method m : cls.getMethods()) {
+            DOpt dopt = m.getAnnotation(DOpt.class);
+            if (dopt != null && dopt.type() == DOpt.Type.LinkAdderNew
+                    && m.getParameters()[0].getType() == toAdd) {
+                return m;
+            }
+        }
+        return null;
     }
 
     private static Constructor<?> getRequiredConstructor(Class<?> cls) {
