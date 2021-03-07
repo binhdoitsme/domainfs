@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class JaxRsApp {
     static List<Class> resourceClasses = new LinkedList<>();
 
@@ -47,6 +48,14 @@ public class JaxRsApp {
         City.class,
         SClass.class,
     };
+
+    static {
+        try {
+            Class.forName("com.hanu.domainfs.DummyApp");
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        }
+    }
 
     private static SoftwareImpl sw;
 

@@ -51,6 +51,7 @@ public class JaxRsConfig extends ResourceConfig {
         return new ObjectMapper()
             .setDateFormat(new SimpleDateFormat("dd-MM-yyyy"))
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .configure(MapperFeature.USE_ANNOTATIONS, true)
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

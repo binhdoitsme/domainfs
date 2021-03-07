@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import com.hanu.domainfs.ws.generators.annotations.bridges.TargetType;
-import com.hanu.domainfs.ws.generators.controllers.ServiceRegistry;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
 import com.hanu.domainfs.utils.InheritanceUtils;
 
@@ -51,8 +50,12 @@ public class WebServiceGenerator {
         Class<?> __;
         for (Class<?> cls : classes) {
             if (ignored.contains(cls)) continue;
-//            annotationGenerator.generateCircularAnnotations(cls, classes);
-            annotationGenerator.generateInheritanceAnnotations(cls);
+            annotationGenerator.generateCircularAnnotations(cls, classes);
+            try {
+                annotationGenerator.generateInheritanceAnnotations(cls);
+            } catch (java.io.IOException ex) {
+                ex.printStackTrace();
+            }
             __ = serviceTypeGenerator.generateAutowiredServiceType(cls);
             generatedServiceClasses.put(cls.getCanonicalName(), __);
             __ =  webControllerGenerator.getRestfulController(cls);

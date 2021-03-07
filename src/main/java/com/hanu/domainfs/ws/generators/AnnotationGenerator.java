@@ -1,8 +1,13 @@
 package com.hanu.domainfs.ws.generators;
 
+import static net.bytebuddy.description.annotation.AnnotationDescription.Builder.ofType;
+import static net.bytebuddy.matcher.ElementMatchers.is;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,8 +29,6 @@ import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
-import static net.bytebuddy.matcher.ElementMatchers.*;
-import static net.bytebuddy.description.annotation.AnnotationDescription.Builder.*;
 
 final class AnnotationGenerator {
     private static AnnotationGenerator INSTANCE;
@@ -37,7 +40,9 @@ final class AnnotationGenerator {
         return INSTANCE;
     }
 
+    @SuppressWarnings("unused")
     private static final ClassReloadingStrategy DEFAULT_RELOADING_STRATEGY;
+    private static final File saveDir = new File("target/classes");
     private final Map<String, List<String>> ignoredFields;
 
     static {
@@ -68,18 +73,19 @@ final class AnnotationGenerator {
         }
         try {
             builder.make()
-                .saveIn(new File("target"));
+                .saveIn(saveDir);
         } catch (IOException e) {
             e.printStackTrace();
         }
-//            .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
+        // builder.make()
+        //     .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
     }
 
     /**
      * Generate @JsonSubTypes, @JsonTypeInfo, @JsonTypeName to handle inheritance.
      * @param cls
      */
-    void generateInheritanceAnnotations(Class<?> cls) {
+    void generateInheritanceAnnotations(Class<?> cls) throws IOException {
         List<Class<?>> subtypes = InheritanceUtils.getSubtypesOf(cls);
         if (subtypes.isEmpty()) return;
         for (Class<?> subtype : subtypes) {
@@ -88,7 +94,8 @@ final class AnnotationGenerator {
                         .define("value", NamingUtils.subtypeShortNameFrom(subtype))
                         .build())
                 .make()
-                .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
+                .saveIn(saveDir);
+                // .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
         }
         // decorate super
         List<AnnotationDescription> subtypeAnnotations =
@@ -112,7 +119,8 @@ final class AnnotationGenerator {
                             new AnnotationDescription[subtypeAnnotations.size()]))
                     .build())
             .make()
-            .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
+            .saveIn(saveDir);
+            // .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
     }
 
     private String[] getIgnoredFields(Class<?>[] defined) {
@@ -135,9 +143,22 @@ final class AnnotationGenerator {
     }
 
     private static boolean isDefinedTypeField(Field f) {
-        Class<?> type = f.getType();
+        Type type = f.getGenericType();
         Class<?> declaringType = f.getDeclaringClass();
         String rootPackage = PackageUtils.basePackageOf(declaringType);
-        return type.getName().contains(rootPackage);
+//        if (Collection.class.isAssignableFrom(type)) {
+//            TypeVariable<?> tp = type.getTypeParameters()[0];
+//            tp.getGenericDeclaration()
+//            return tp.getTypeName().contains(rootPackage);
+//        }
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            for (Type t : pt.getActualTypeArguments()) {
+                if (t.getTypeName().contains(rootPackage)) {
+                    return true;
+                }
+            }
+        }
+        return type.getTypeName().contains(rootPackage);
     }
 }
