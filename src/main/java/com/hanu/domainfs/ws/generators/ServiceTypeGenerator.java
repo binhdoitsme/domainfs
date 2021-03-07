@@ -4,7 +4,6 @@ import static net.bytebuddy.description.annotation.AnnotationDescription.Builder
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
+import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.matcher.ElementMatchers;
 
@@ -51,20 +51,19 @@ final class ServiceTypeGenerator {
     /**
      * Generate service types for autowiring.
      */
-    public <T, ID extends Serializable> Class<CrudService<T, ID>>
-            generateAutowiredServiceType(Class<T> type) {
+    public <T> Class<CrudService<T>> generateAutowiredServiceType(Class<T> type) {
         //
         String genericTypeName = type.getName();
 
         if (generatedServices.containsKey(genericTypeName)) {
-            return (Class<CrudService<T, ID>>)
+            return (Class<CrudService<T>>)
                 generatedServices.get(genericTypeName);
         }
 
         final String name = NamingUtils.classNameFrom(type.getPackageName().replace(".model", ""), 
                                 crudServiceClass, "Service", type);
 
-        final String simpleName = type.getSimpleName().toLowerCase() + "Service";
+        final String simpleName = type.getName();
 
         //
         Unloaded unloaded;
@@ -84,7 +83,7 @@ final class ServiceTypeGenerator {
 
         Class returning = saveAndReturnClass(unloaded, name);
         generatedServices.put(genericTypeName, returning);
-        return (Class<CrudService<T, ID>>) returning;
+        return (Class<CrudService<T>>) returning;
     }
 
     private static <T> Unloaded<T> generateServiceType(
@@ -122,10 +121,8 @@ final class ServiceTypeGenerator {
                     .invoke(absInheritedCrudServiceClass
                         .getDeclaredConstructors()[0])
                     .withAllArguments()
-                .andThen(MethodCall
-                    .invoke(ElementMatchers.named("setType"))
-                    .onSuper()
-                    .with(type))
+                .andThen(FieldAccessor.ofField("type")
+                    .setsValue(type))
                 ))
             .annotateMethod(ofType(Autowired.class).build())
             .annotateParameter(1,
@@ -152,4 +149,7 @@ final class ServiceTypeGenerator {
         }
     }
 
+    public static Class getServiceTypeOf(Class<?> cls) {
+        return instance().generateAutowiredServiceType(cls);
+    }
 }

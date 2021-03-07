@@ -1,35 +1,45 @@
 package com.hanu.domainfs.ws.generators;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
+import com.hanu.domainfs.ws.generators.annotations.bridges.TargetType;
+import com.hanu.domainfs.ws.generators.controllers.ServiceRegistry;
 import com.hanu.domainfs.ws.utils.ClassAssocUtils;
 import com.hanu.domainfs.utils.InheritanceUtils;
 
 @SuppressWarnings({ "rawtypes" })
 public class WebServiceGenerator {
-    private static WebServiceGenerator INSTANCE;
-
-    public static WebServiceGenerator instance() {
-        if (INSTANCE == null) {
-            INSTANCE = new WebServiceGenerator();
-        }
-        return INSTANCE;
-    }
 
     private final WebControllerGenerator webControllerGenerator;
     private final ServiceTypeGenerator serviceTypeGenerator;
     private final AnnotationGenerator annotationGenerator;
+    private final List<Class> generatedControllerClasses;
+    private final Map<String, Class> generatedServiceClasses;
     private Runnable generateCompleteCallback;
 
-    public WebServiceGenerator() {
-        this.webControllerGenerator = WebControllerGenerator.instance();
+    public WebServiceGenerator(TargetType targetType) {
+        this.webControllerGenerator = new WebControllerGenerator(targetType);
         this.serviceTypeGenerator = ServiceTypeGenerator.instance();
         this.annotationGenerator = AnnotationGenerator.instance();
+
+        generatedControllerClasses = new LinkedList<>();
+        generatedServiceClasses = new LinkedHashMap<>();
     }
 
     public void setGenerateCompleteCallback(Runnable generateCompleteCallback) {
         this.generateCompleteCallback = generateCompleteCallback;
+    }
+
+    public Map<String, Class> getGeneratedServiceClasses() {
+        return generatedServiceClasses;
+    }
+
+    public List<Class> getGeneratedControllerClasses() {
+        return generatedControllerClasses;
     }
 
     /**
@@ -38,18 +48,23 @@ public class WebServiceGenerator {
      */
     public void generateWebService(Class... classes) {
         List<Class<?>> ignored = getIgnoredClasses(classes);
+        Class<?> __;
         for (Class<?> cls : classes) {
             if (ignored.contains(cls)) continue;
-            annotationGenerator.generateCircularAnnotations(cls, classes);
+//            annotationGenerator.generateCircularAnnotations(cls, classes);
             annotationGenerator.generateInheritanceAnnotations(cls);
-            serviceTypeGenerator.generateAutowiredServiceType(cls);
-            webControllerGenerator.getRestfulController(cls);
+            __ = serviceTypeGenerator.generateAutowiredServiceType(cls);
+            generatedServiceClasses.put(cls.getCanonicalName(), __);
+            __ =  webControllerGenerator.getRestfulController(cls);
+            generatedControllerClasses.add(__);
             List<Class<?>> nestedClasses = ClassAssocUtils.getNested(cls);
             for (Class<?> nested : nestedClasses) {
                 if (nested == cls) continue;
-                webControllerGenerator.getNestedRestfulController(cls, nested);
+                __ = webControllerGenerator.getNestedRestfulController(cls, nested);
+                generatedControllerClasses.add(__);
             }
         }
+
         onGenerateComplete();
     }
 

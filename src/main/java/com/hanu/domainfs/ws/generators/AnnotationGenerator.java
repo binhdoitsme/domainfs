@@ -1,5 +1,7 @@
 package com.hanu.domainfs.ws.generators;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -64,8 +66,13 @@ final class AnnotationGenerator {
                     .defineArray("value", ignoredFields)
                     .build());
         }
-        builder.make()
-            .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
+        try {
+            builder.make()
+                .saveIn(new File("target"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//            .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
     }
 
     /**
@@ -84,7 +91,7 @@ final class AnnotationGenerator {
                 .load(cls.getClassLoader(), DEFAULT_RELOADING_STRATEGY);
         }
         // decorate super
-        List<AnnotationDescription> subtypeAnnotations = 
+        List<AnnotationDescription> subtypeAnnotations =
             subtypes.stream()
                 .map(c -> ofType(JsonSubTypes.Type.class)
                     .define("value", c)
@@ -99,8 +106,8 @@ final class AnnotationGenerator {
                     .define("property", "type")
                     .build(),
                 ofType(JsonSubTypes.class)
-                    .defineAnnotationArray("value", 
-                        ForLoadedType.of(JsonSubTypes.Type.class), 
+                    .defineAnnotationArray("value",
+                        ForLoadedType.of(JsonSubTypes.Type.class),
                         subtypeAnnotations.toArray(
                             new AnnotationDescription[subtypeAnnotations.size()]))
                     .build())
