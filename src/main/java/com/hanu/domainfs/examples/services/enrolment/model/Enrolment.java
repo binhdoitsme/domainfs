@@ -44,7 +44,7 @@ public class Enrolment implements Comparable {
   @DAssoc(ascName = "module-has-enrolments", role = "enrolment",
     ascType = AssocType.One2Many, endType = AssocEndType.Many,
     associate = @Associate(type = CourseModule.class, cardMin = 1, cardMax = 1), dependsOn = true)
-  private CourseModule module;
+  private CourseModule courseModule;
 
   @DAttr(name = AttributeName_InternalMark, type = Type.Double, length = 4, optional = true, min = 0.0)
   private Double internalMark;
@@ -99,7 +99,7 @@ public class Enrolment implements Comparable {
       Character finalGrade) throws ConstraintViolationException {
     this.id = nextID(id);
     this.student = s;
-    this.module = m;
+    this.courseModule = m;
     this.internalMark = (internalMark != null) ? internalMark.doubleValue()
         : null;
     this.examMark = (examMark != null) ? examMark.doubleValue() : null;
@@ -115,8 +115,8 @@ public class Enrolment implements Comparable {
     this.student = s;
   }
 
-  public void setModule(CourseModule m) {
-    this.module = m;
+  public void setCourseModule(CourseModule m) {
+    this.courseModule = m;
   }
 
   public void setInternalMark(Double mark) {
@@ -174,8 +174,8 @@ public class Enrolment implements Comparable {
     return student;
   }
 
-  public CourseModule getModule() {
-    return module;
+  public CourseModule getCourseModule() {
+    return courseModule;
   }
 
   public Double getInternalMark() {
@@ -221,11 +221,11 @@ public class Enrolment implements Comparable {
 
   public String toString(boolean full) {
     if (full)
-      return "Enrolment(" + student + "," + module + ")";
+      return "Enrolment(" + student + "," + courseModule + ")";
     else
       return "Enrolment(" + getId() + "," +
             ((student != null) ? student.getId() : "null") + "," +
-            ((module != null) ? module.getCode() : "null") + ")";
+            ((courseModule != null) ? courseModule.getCode() : "null") + ")";
   }
 
   @Override

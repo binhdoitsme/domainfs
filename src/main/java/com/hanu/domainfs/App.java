@@ -8,6 +8,10 @@ import com.hanu.domainfs.examples.services.sclass.model.SClass;
 import com.hanu.domainfs.examples.services.student.model.City;
 import com.hanu.domainfs.examples.services.student.model.Student;
 import com.hanu.domainfs.ws.generators.WebServiceGenerator;
+import com.hanu.domainfs.ws.generators.annotations.bridges.TargetType;
+import com.hanu.domainfs.ws.generators.controllers.ServiceRegistry;
+import com.hanu.domainfs.ws.generators.services.CrudService;
+
 import domainapp.basics.exceptions.DataSourceException;
 import domainapp.basics.exceptions.NotFoundException;
 import domainapp.basics.exceptions.NotPossibleException;
@@ -16,6 +20,7 @@ import domainapp.softwareimpl.SoftwareImpl;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,9 +39,6 @@ public class App {
         Student.class,
         City.class,
         SClass.class,
-        // reports
-//        StudentsByNameReport.class,
-//        StudentsByCityJoinReport.class
     };
 
     private static SoftwareImpl sw;
@@ -48,7 +50,7 @@ public class App {
     public static void main(final String[] args) {
         System.out.println("------------");
 
-        WebServiceGenerator generator = WebServiceGenerator.instance();
+        WebServiceGenerator generator = new WebServiceGenerator(TargetType.SPRING);
         generator.setGenerateCompleteCallback(() -> {
             sw = SoftwareFactory.createDefaultDomSoftware();
             sw.init();
@@ -57,7 +59,13 @@ public class App {
             } catch (NotPossibleException | NotFoundException | DataSourceException e) {
                 throw new RuntimeException(e);
             }
-            SpringApplication.run(App.class, args);
+            // populate the service registry
+            final ServiceRegistry registry = ServiceRegistry.getInstance();
+            ApplicationContext ctx = SpringApplication.run(App.class, args);
+            ctx.getBeansOfType(CrudService.class).forEach((k, v) -> {
+                registry.put(k, v);
+            });
+            
         });
         generator.generateWebService(model);
         System.out.println("------------");
